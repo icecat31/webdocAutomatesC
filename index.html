@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automates Cellulaires — Webdocumentaire Interactif</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo">Automates Cellulaires</div>
+  <nav>
+    <a href="#hero">Accueil</a>
+    <a href="#automates">Automates</a>
+    <a href="#jeu-de-la-vie">Jeu de la Vie</a>
+    <a href="#feu">Propagation du Feu</a>
+    <a href="#gaz">Diffusion de Gaz</a>
+    <a href="#finale">Finale</a>
+  </nav>
+</header>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ─── SIDEBAR TOC ─── -->
+<div class="sidebar-toc" id="sidebarToc"></div>
+
+<!-- ─── SIDEBAR SANDBOX BUTTONS ─── -->
+<button class="sandbox-btn" id="sandboxGameOfLife" onclick="goToSandbox('jeu-de-la-vie.html')">🎮</button>
+<button class="sandbox-btn" id="sandboxFire" onclick="alert('Sandbox Feu (à développer)')">🔥</button>
+<button class="sandbox-btn" id="sandboxGas" onclick="alert('Sandbox Gaz (à développer)')">💨</button>
+<button class="sandbox-btn" id="sandboxFinal" onclick="alert('Sandbox Finale (à développer)')">✨</button>
+
+<main>
+
+<!-- ═════════════════════════════════════════ HERO ═════════════════════════════════════════ -->
+<section class="hero" id="hero">
+  <div class="hero-content">
+    <div class="act-label">Ouverture</div>
+    <h1>Quelques règles pour<br>comprendre la <em>nature</em></h1>
+    <p class="lead">Les phénomènes complexes qui nous entourent naissent souvent de règles simples. Comment un feu se propage, comment les cellules vivantes se reproduisent, comment un gaz se diffuse — tout cela peut être simulé par des automates cellulaires.</p>
+    <div class="divider"></div>
+    <p>Explorez ce webdocumentaire interactif pour découvrir comment la complexité émerge de la simplicité.</p>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════ AUTOMATES CELLULAIRES ═════════════════════════════════════════ -->
+<section id="automates">
+  <div class="act-label">Chapitre 1 — Les Fondamentaux</div>
+  <h2>Qu'est-ce qu'un automate cellulaire ?</h2>
+  <p class="lead">Un automate cellulaire est un système mathématique très simple : une grille de cellules, chaque cellule a un état, et à chaque pas de temps, les cellules changent d'état selon une règle locale.</p>
+
+  <div class="card reveal">
+    <h3>Les trois éléments clés</h3>
+    <p>Un automate cellulaire repose sur trois principes fondamentaux :</p>
+
+    <div class="rule-grid">
+      <div class="rule-card">
+        <h3>🔲 La Grille</h3>
+        <p>Un espace régulier où chaque cellule a une position définie et un état (vivant / mort, allumé / éteint).</p>
+      </div>
+      <div class="rule-card">
+        <h3>⚙️ La Règle Locale</h3>
+        <p>Chaque cellule consulte ses voisins et applique une règle déterministe pour définir son prochain état.</p>
+      </div>
+      <div class="rule-card">
+        <h3>⏱️ L'Itération</h3>
+        <p>À chaque génération, toutes les cellules se mettent à jour simultanément, créant une dynamique globale.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout reveal">
+    <p>💡 <strong>Propriété remarquable :</strong> Les automates cellulaires peuvent simuler des phénomènes réels — la croissance de cristaux, la propagation de feux de forêt, l'évolution d'écosystèmes — tout en restant mathématiquement parfaits.</p>
+  </div>
+
+  <div class="card reveal">
+    <h3>Exemples naturels</h3>
+    <p>Les automates cellulaires ne sont pas qu'un outil mathématique — la nature les utilise :</p>
+    <ul style="margin-left: 1.5rem; color: var(--text-light);">
+      <li><strong>Coquillages :</strong> Les motifs sur les coquilles de cônes suivent des règles d'automates cellulaires.</li>
+      <li><strong>Écosystèmes :</strong> La distribution des animaux et des plantes émerge de règles de proximité locales.</li>
+      <li><strong>Cristallographie :</strong> La formation de cristaux de flocons de neige suit des dynamiques similaires.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════ JEU DE LA VIE ═════════════════════════════════════════ -->
+<section id="jeu-de-la-vie">
+  <div class="act-label">Chapitre 2 — Le Jeu de la Vie</div>
+  <h2>L'automate cellulaire par excellence</h2>
+  <p class="lead">En 1970, le mathématicien John Conway a créé le « Jeu de la Vie », un automate cellulaire qui simule l'évolution de populations. Malgré ses règles élémentaires, il produit des comportements étonnamment complexes.</p>
+
+  <div class="card reveal">
+    <h3>Les quatre règles</h3>
+    <p>À chaque génération, ces quatre règles s'appliquent simultanément à chaque cellule :</p>
+
+    <div class="rule-grid">
+      <div class="rule-card">
+        <div class="rule-icon">
+          <div class="cell on"></div>
+          <div class="cell"></div>
+          <div class="cell"></div>
+        </div>
+        <h3>Sous-population</h3>
+        <p>Une cellule vivante avec <strong>moins de 2 voisins</strong> meurt d'isolement.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon">
+          <div class="cell on"></div>
+          <div class="cell on"></div>
+          <div class="cell"></div>
+        </div>
+        <h3>Survie</h3>
+        <p>Une cellule vivante avec <strong>2 ou 3 voisins</strong> survit à la prochaine génération.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon">
+          <div class="cell on"></div>
+          <div class="cell on"></div>
+          <div class="cell on"></div>
+        </div>
+        <h3>Sur-population</h3>
+        <p>Une cellule vivante avec <strong>plus de 3 voisins</strong> meurt d'étouffement.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon">
+          ✦
+        </div>
+        <h3>Naissance</h3>
+        <p>Une cellule morte avec <strong>exactement 3 voisins</strong> devient vivante.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout green reveal">
+    <p>🔬 <strong>Complexité émergente :</strong> Ces quatre règles ultra-simples donnent naissance à des formes remarquables : des structures stables, des oscillateurs, des créatures qui se déplacent à travers la grille.</p>
+  </div>
+
+  <div class="card reveal">
+    <a href="jeu-de-la-vie.html" class="btn primary" style="margin-bottom: 1.5rem;">→ Explorer le Jeu de la Vie en Direct</a>
+    <h3>Figures remarquables</h3>
+    <p>Les chercheurs ont découvert et catalogué des milliers de configurations stables ou récurrentes :</p>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-year">Bloc</div>
+          <p>Une structure 2×2 qui reste inchangée. La configuration la plus stable possible.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-year">Oscillateur</div>
+          <p>Des formes qui clignotent périodiquement (par exemple, un « clignotant » qui change tous les deux pas).</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-year">Planeur (Glider)</div>
+          <p>Une forme de cinq cellules qui se déplace diagonalement à travers la grille — l'une des découvertes majeures.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-year">Gosper Glider Gun</div>
+          <p>Une structure énorme (environ 36 × 20 cellules) qui produit continuellement des planeurs. Elle a réfuté la conjecture de Conway sur la finitude.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-year">Turing Complétude (1982)</div>
+          <p>Preuve mathématique que le Jeu de la Vie peut simuler n'importe quel calcul — il est aussi puissant qu'un ordinateur.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════ FEU ═════════════════════════════════════════ -->
+<section id="feu">
+  <div class="act-label">Chapitre 3 — La Propagation du Feu</div>
+  <h2>Simuler un incendie avec des automates</h2>
+  <p class="lead">Les incendies de forêt ne se propagent pas aléatoirement. Ils suivent des règles locales : le feu s'étend à un arbre voisin si celui-ci est sec, ralentit s'il pleut, s'accélère avec le vent.</p>
+
+  <div class="card reveal">
+    <h3>La règle du Feu</h3>
+    <p>Un modèle simplifié repose sur trois états pour chaque cellule :</p>
+
+    <div class="rule-grid">
+      <div class="rule-card">
+        <h3>🌲 Arbre</h3>
+        <p>Une cellule verte. Elle peut brûler si au moins un voisin est en feu.</p>
+      </div>
+      <div class="rule-card">
+        <h3>🔥 En Feu</h3>
+        <p>Une cellule rouge. Elle brûle pendant une génération, puis devient cendre.</p>
+      </div>
+      <div class="rule-card">
+        <h3>🩶 Cendre</h3>
+        <p>Une cellule grise. Elle ne se réenflamma pas, modélisant le terrain carbonisé.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="simulation-preview reveal">
+    <h4>Aperçu : Propagation du Feu</h4>
+    <p>Une grille où le feu se propage aux arbres voisins</p>
+    <canvas id="firePreview" style="width: 100%; max-width: 300px; height: 200px;"></canvas>
+  </div>
+
+  <div class="callout amber reveal">
+    <p>🔬 <strong>Applications réelles :</strong> Ces modèles sont utilisés par les agences de gestion des forêts pour prédire la propagation des feux, évaluer les zones à risque et optimiser les stratégies d'évacuation.</p>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════ VIDEO INTERVIEW FEU ═════════════════════════════════════════ -->
+<section id="interview-feu">
+  <div class="act-label">Interview</div>
+  <h2>Expert en simulation de feux de forêt</h2>
+  <p class="lead" style="margin-bottom: 2rem;">Comment les modèles mathématiques aident à comprendre et prévoir les catastrophes naturelles.</p>
+
+  <div class="video-container reveal">
+    <div class="play-icon">▶</div>
+    <h4>Qu'est-ce qui rend un incendie si difficile à maîtriser ?</h4>
+    <p>Cette vidéo présente les défis de la modélisation et les applications pratiques des automates cellulaires dans la gestion des risques.</p>
+  </div>
+
+  <div class="card reveal">
+    <h3>Points clés de l'interview</h3>
+    <ul style="margin-left: 1.5rem; color: var(--text-light);">
+      <li>Les automates cellulaires permettent de tester rapidement des scénarios.</li>
+      <li>Le vent, l'humidité et la végétation introduisent de la complexité réelle.</li>
+      <li>Les simulations aident à évacuer les populations avant que le feu n'arrive.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════ GAZ ═════════════════════════════════════════ -->
+<section id="gaz">
+  <div class="act-label">Chapitre 4 — La Diffusion de Gaz</div>
+  <h2>Comment un gaz se répand dans l'air</h2>
+  <p class="lead">La diffusion de gaz est un phénomène macroscopique qui émerge du mouvement aléatoire des molécules. Les automates cellulaires peuvent le modéliser efficacement.</p>
+
+  <div class="card reveal">
+    <h3>La règle de la Diffusion</h3>
+    <p>À chaque génération, les molécules de gaz se déplacent aléatoirement vers des cellules adjacentes, créant une propagation graduelle :</p>
+
+    <div class="rule-grid">
+      <div class="rule-card">
+        <h3>🔷 Concentration</h3>
+        <p>Chaque cellule a un niveau de concentration de gaz (0 à 100%).</p>
+      </div>
+      <div class="rule-card">
+        <h3>→ Mouvements</h3>
+        <p>Une fraction du gaz migre vers les quatre cellules voisines.</p>
+      </div>
+      <div class="rule-card">
+        <h3>⚖️ Équilibre</h3>
+        <p>Au fil du temps, la concentration s'uniformise — le gaz se diffuse partout.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="simulation-preview reveal">
+    <h4>Aperçu : Diffusion de Gaz</h4>
+    <p>Le gaz se propage lentement depuis un point d'émission</p>
+    <canvas id="gasPreview" style="width: 100%; max-width: 300px; height: 200px;"></canvas>
+  </div>
+
+  <div class="callout green reveal">
+    <p>🔬 <strong>Connexion avec la physique :</strong> Ce modèle simple est une approximation discrète de l'équation de diffusion de Fourier. Il démontre comment des lois physiques complexes émergent de la mécanique aléatoire.</p>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════ VIDEO INTERVIEW GAZ ═════════════════════════════════════════ -->
+<section id="interview-gaz">
+  <div class="act-label">Interview</div>
+  <h2>Expert en physique et modélisation</h2>
+  <p class="lead" style="margin-bottom: 2rem;">Comment comprendre les phénomènes macroscopiques en partant du microscopique.</p>
+
+  <div class="video-container reveal">
+    <div class="play-icon">▶</div>
+    <h4>Comment passons-nous du chaos microscopique à l'ordre macroscopique ?</h4>
+    <p>Cette vidéo explore le lien entre les molécules individuelles et les lois physiques observées.</p>
+  </div>
+
+  <div class="card reveal">
+    <h3>Points clés de l'interview</h3>
+    <ul style="margin-left: 1.5rem; color: var(--text-light);">
+      <li>La diffusion émerge du mouvement brownien aléatoire.</li>
+      <li>Les automates cellulaires offrent une alternative efficace aux équations différentielles.</li>
+      <li>Ce principe s'applique à bien d'autres phénomènes : température, concentration, pollution.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════ FINALE ═════════════════════════════════════════ -->
+<section id="finale">
+  <div class="act-label">Conclusion</div>
+  <h2>Au-delà des frontières</h2>
+  <p class="lead">Les automates cellulaires ne sont qu'un point de départ. Ils montrent que la complexité naît de la simplicité — un principe qui s'étend bien au-delà de la grille.</p>
+
+  <div class="card reveal">
+    <h3>Directions futures</h3>
+    <div class="rule-grid">
+      <div class="rule-card">
+        <h3>🧬 Biologie</h3>
+        <p>Modéliser la croissance des tissus, la réplication cellulaire, l'évolution des populations.</p>
+      </div>
+      <div class="rule-card">
+        <h3>🌍 Écologie</h3>
+        <p>Prédire les migrations d'animaux, la compétition entre espèces, l'impact du climat.</p>
+      </div>
+      <div class="rule-card">
+        <h3>🏙️ Urbanisme</h3>
+        <p>Modéliser le trafic, la propagation des épidémies, la croissance urbaine.</p>
+      </div>
+      <div class="rule-card">
+        <h3>💻 Intelligence Artificielle</h3>
+        <p>Utiliser les automates comme base pour des systèmes multi-agents autonomes.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card reveal" style="background: linear-gradient(135deg, rgba(155,125,92,0.08), rgba(212,165,116,0.08)); border-color: var(--accent);">
+    <h3>Votre tour d'explorer</h3>
+    <p>Nous avons survolé les principes. Maintenant, testez par vous-même :</p>
+    <div style="margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem;">
+      <a href="jeu-de-la-vie.html" class="btn primary">→ Explorer le Jeu de la Vie</a>
+      <button class="btn secondary" onclick="scrollToSection('#automates')">← Revenir aux Fondamentaux</button>
+    </div>
+  </div>
+
+  <div class="callout reveal">
+    <p>📚 <strong>Pour aller plus loin :</strong> Explorez les ressources en ligne, découvrez de nouveaux modèles d'automates, contribuez à des projets open-source de simulation, ou créez votre propre automate cellulaire.</p>
+  </div>
+
+  <div class="card reveal">
+    <h3>Ressources et lectures</h3>
+    <ul style="margin-left: 1.5rem; color: var(--text-light);">
+      <li><em>A New Kind of Science</em> de Stephen Wolfram — Une exploration exhaustive des automates cellulaires.</li>
+      <li>Site officiel Life Lexicon — Catalogue complet des formes du Jeu de la Vie.</li>
+      <li>Projets d'automates sur GitHub — Implémentations en divers langages.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<script>
+  // ─── PROGRESS BAR ─── 
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollPercent = (scrollTop / docHeight) * 100;
+    document.getElementById('progressBar').style.width = scrollPercent + '%';
+  });
+
+  // ─── REVEAL ANIMATIONS ─── 
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ─── SIDEBAR TOC ─── 
+  const sections = [
+    { id: 'hero', name: 'Accueil' },
+    { id: 'automates', name: 'Automates' },
+    { id: 'jeu-de-la-vie', name: 'Jeu de la Vie' },
+    { id: 'feu', name: 'Propagation du Feu' },
+    { id: 'gaz', name: 'Diffusion de Gaz' },
+    { id: 'finale', name: 'Finale' }
+  ];
+
+  const sidebarToc = document.getElementById('sidebarToc');
+  sections.forEach(section => {
+    const dot = document.createElement('div');
+    dot.className = 'toc-dot';
+    dot.setAttribute('data-section', section.id);
+    dot.setAttribute('title', section.name);
+    dot.onclick = () => {
+      document.getElementById(section.id).scrollIntoView({ behavior: 'smooth' });
+    };
+    sidebarToc.appendChild(dot);
+  });
+
+  // ─── UPDATE ACTIVE SECTION ─── 
+  window.addEventListener('scroll', () => {
+    let currentSection = 'hero';
+    sections.forEach(section => {
+      const element = document.getElementById(section.id);
+      if (element && element.offsetTop <= window.scrollY + 100) {
+        currentSection = section.id;
+      }
+    });
+
+    document.querySelectorAll('.toc-dot').forEach(dot => {
+      dot.classList.remove('active');
+    });
+    document.querySelector(`[data-section="${currentSection}"]`)?.classList.add('active');
+
+    // ─── SHOW/HIDE SANDBOX BUTTONS ─── 
+    document.getElementById('sandboxGameOfLife').classList.toggle('active', currentSection === 'jeu-de-la-vie');
+    document.getElementById('sandboxFire').classList.toggle('active', currentSection === 'feu');
+    document.getElementById('sandboxGas').classList.toggle('active', currentSection === 'gaz');
+    document.getElementById('sandboxFinal').classList.toggle('active', currentSection === 'finale');
+  });
+
+  // ─── SANDBOX NAVIGATION ─── 
+  function goToSandbox(page) {
+    window.location.href = page;
+  }
+
+  function scrollToSection(sectionId) {
+    const element = document.querySelector(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  // ─── SIMPLE SIMULATIONS (Preview Canvases) ─── 
+  function drawFirePreview() {
+    const canvas = document.getElementById('firePreview');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const gridSize = 20;
+    const cellSize = canvas.width / gridSize;
+
+    ctx.fillStyle = '#f0eeec';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Simulate fire spreading
+    for (let i = 0; i < gridSize; i++) {
+      for (let j = 0; j < gridSize; j++) {
+        const dist = Math.hypot(i - gridSize / 2, j - gridSize / 2);
+        let color;
+
+        if (dist < 3) color = '#c85a54'; // Fire
+        else if (dist < 6) color = '#8b6f47'; // Smoke/Burned
+        else color = '#5a8b6f'; // Trees
+
+        ctx.fillStyle = color;
+        ctx.fillRect(i * cellSize, j * cellSize, cellSize - 1, cellSize - 1);
+      }
+    }
+  }
+
+  function drawGasPreview() {
+    const canvas = document.getElementById('gasPreview');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const gridSize = 20;
+    const cellSize = canvas.width / gridSize;
+
+    ctx.fillStyle = '#f0eeec';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Simulate gas diffusion
+    for (let i = 0; i < gridSize; i++) {
+      for (let j = 0; j < gridSize; j++) {
+        const dist = Math.hypot(i - gridSize / 2, j - gridSize / 2);
+        const intensity = Math.max(0, 1 - dist / 10);
+
+        ctx.fillStyle = `rgba(155, 125, 92, ${intensity * 0.6})`;
+        ctx.fillRect(i * cellSize, j * cellSize, cellSize - 1, cellSize - 1);
+      }
+    }
+  }
+
+  // Draw previews on load
+  setTimeout(() => {
+    drawFirePreview();
+    drawGasPreview();
+  }, 100);
+</script>
+
+</body>
+</html>
