@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le Jeu de la Vie — Un univers dans une grille</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --card: #16161f;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e8f0;
+    --muted: #8888a0;
+    --accent: #7c6fff;
+    --accent2: #ff6b9d;
+    --green: #4fffb0;
+    --amber: #ffc94a;
+    --cell-alive: #7c6fff;
+    --cell-dead: transparent;
+    --serif: 'DM Serif Display', serif;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0;
+    padding: 0 2rem; height: 56px;
+  }
+  nav .logo {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--accent);
+    margin-right: auto;
+    letter-spacing: 0.02em;
+  }
+  nav a {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  nav a:hover, nav a.active { color: var(--text); background: rgba(255,255,255,0.06); }
+
+  /* ── PROGRESS ── */
+  .progress-bar {
+    position: fixed; top: 56px; left: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    z-index: 99; transition: width 0.3s;
+    width: 0%;
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    min-height: 100vh;
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  section.hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+    align-items: flex-start;
+    max-width: 100%;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-content {
+    position: relative; z-index: 2;
+    max-width: 700px;
+    padding: 0 3rem;
+  }
+
+  .hero-grid-bg {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    opacity: 0.15;
+    z-index: 1;
+  }
+
+  .act-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .act-label::before {
+    content: '';
+    display: inline-block;
+    width: 24px; height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    font-weight: 400;
+  }
+  h1 em { color: var(--accent); font-style: italic; }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 400;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+
+  h3 {
+    font-family: var(--sans);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+
+  p { color: var(--muted); margin-bottom: 1rem; font-size: 0.97rem; }
+  p.lead { font-size: 1.1rem; color: rgba(232,232,240,0.75); }
+
+  .divider {
+    width: 40px; height: 1px;
+    background: var(--accent);
+    margin: 1.5rem 0;
+    opacity: 0.5;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .rule-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem; margin: 1.5rem 0;
+  }
+  .rule-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    transition: border-color 0.2s;
+  }
+  .rule-card:hover { border-color: var(--accent); }
+  .rule-icon {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+    display: flex; gap: 3px; align-items: center;
+  }
+  .r { width: 10px; height: 10px; border-radius: 2px; }
+  .r.on { background: var(--cell-alive); }
+  .r.off { background: rgba(255,255,255,0.1); }
+
+  /* ── GAME GRID ── */
+  .game-container {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .game-controls {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+    align-items: center; margin-bottom: 1rem;
+  }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    padding: 0.45rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text);
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .btn:hover { background: rgba(124,111,255,0.15); border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: #6a5de8; }
+  .btn.danger { border-color: rgba(255,107,157,0.4); color: var(--accent2); }
+  .btn.danger:hover { background: rgba(255,107,157,0.1); }
+  .btn.active { background: rgba(124,111,255,0.2); border-color: var(--accent); }
+
+  canvas {
+    display: block;
+    border-radius: 8px;
+    cursor: crosshair;
+    image-rendering: pixelated;
+    border: 1px solid var(--border);
+  }
+
+  .stats-bar {
+    display: flex; gap: 1.5rem; align-items: center;
+    margin-top: 0.75rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .stats-bar span { color: var(--accent); }
+
+  /* ── PATTERN LIBRARY ── */
+  .pattern-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 1rem; margin: 1.5rem 0;
+  }
+  .pattern-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .pattern-card:hover, .pattern-card.selected {
+    border-color: var(--accent);
+    background: rgba(124,111,255,0.08);
+  }
+  .pattern-preview {
+    margin: 0 auto 0.75rem;
+    display: grid;
+    gap: 2px;
+    justify-content: center;
+  }
+  .pattern-preview .pc {
+    width: 8px; height: 8px; border-radius: 1px;
+  }
+  .pattern-preview .pc.on { background: var(--accent); }
+  .pattern-preview .pc.off { background: rgba(255,255,255,0.07); }
+  .pattern-name { font-size: 0.82rem; font-weight: 500; color: var(--text); }
+  .pattern-desc { font-size: 0.72rem; color: var(--muted); margin-top: 0.25rem; }
+
+  /* ── REVEAL ANIMATIONS ── */
+  .reveal {
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 0.6s, transform 0.6s;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-left: 3px solid var(--accent);
+    padding: 1rem 1.25rem;
+    background: rgba(124,111,255,0.06);
+    border-radius: 0 8px 8px 0;
+    margin: 1.5rem 0;
+  }
+  .callout.amber { border-color: var(--amber); background: rgba(255,201,74,0.06); }
+  .callout.green { border-color: var(--green); background: rgba(79,255,176,0.06); }
+  .callout p { margin: 0; color: var(--text); font-size: 0.92rem; }
+
+  /* ── TIMELINE ── */
+  .timeline { margin: 1.5rem 0; }
+  .tl-item { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+  .tl-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); margin-top: 0.45rem; flex-shrink: 0;
+    position: relative;
+  }
+  .tl-dot::after {
+    content: ''; position: absolute; left: 3px; top: 12px;
+    width: 1px; height: calc(100% + 18px);
+    background: var(--border2);
+  }
+  .tl-item:last-child .tl-dot::after { display: none; }
+  .tl-year { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); margin-bottom: 0.25rem; }
+
+  /* ── FINAL REVEAL ── */
+  #finale {
+    background: linear-gradient(135deg, rgba(124,111,255,0.05), rgba(255,107,157,0.05));
+    border-top: 1px solid var(--border);
+    min-height: 100vh;
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .big-number {
+    font-family: var(--serif);
+    font-size: clamp(3rem, 8vw, 6rem);
+    color: var(--accent);
+    line-height: 1;
+    display: block;
+    margin: 1rem 0;
+  }
+
+  .finale-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem; margin: 2rem 0;
+  }
+  .finale-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .finale-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
+  .finale-card .fc-icon {
+    font-family: var(--mono); font-size: 0.7rem; color: var(--accent);
+    margin-bottom: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+
+  /* ── SPEED SLIDER ── */
+  input[type=range] {
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .slider-row {
+    display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem;
+  }
+  .slider-row label { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+  .slider-row span { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); min-width: 3rem; }
+
+  @media (max-width: 600px) {
+    .hero-content { padding: 0 1.5rem; }
+    section { padding: 5rem 1.25rem 3rem; }
+    nav { padding: 0 1rem; }
+    nav a { display: none; }
+    nav a.nav-first { display: block; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Jeu de la Vie</div>
+  <a href="#intro" class="nav-first">Règles</a>
+  <a href="#play">Explorer</a>
+  <a href="#forms">Formes</a>
+  <a href="#complex">Complexité</a>
+  <a href="#finale">Infini</a>
+</nav>
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero" id="intro">
+  <canvas class="hero-grid-bg" id="heroBg"></canvas>
+  <div class="hero-content">
+    <div class="act-label">Acte I — Les règles</div>
+    <h1>Un univers né de<br><em>quatre règles</em></h1>
+    <p class="lead">En 1970, le mathématicien John Conway a créé un jeu sans joueur. Il suffit de placer des cellules vivantes sur une grille — le reste se produit tout seul.</p>
+    <div class="divider"></div>
+    <p>Chaque cellule a deux états : vivante ou morte. À chaque génération, ces quatre règles déterminent l'état de chaque cellule.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ RÈGLES ═══════════════════ -->
+<section id="rules">
+  <div class="rule-grid reveal">
+    <div class="rule-card">
+      <div class="rule-icon">
+        <div class="r on"></div><div class="r off"></div><div class="r off"></div>
+      </div>
+      <h3>Sous-population</h3>
+      <p style="margin:0;font-size:0.85rem">Une cellule vivante avec <strong>moins de 2 voisins</strong> meurt d'isolement.</p>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">
+        <div class="r on"></div><div class="r on"></div><div class="r on"></div>
+      </div>
+      <h3>Survie</h3>
+      <p style="margin:0;font-size:0.85rem">Une cellule vivante avec <strong>2 ou 3 voisins</strong> survit à la prochaine génération.</p>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">
+        <div class="r on"></div><div class="r on"></div><div class="r on"></div><div class="r on"></div>
+      </div>
+      <h3>Sur-population</h3>
+      <p style="margin:0;font-size:0.85rem">Une cellule vivante avec <strong>plus de 3 voisins</strong> meurt d'étouffement.</p>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon" style="color:var(--green)">✦</div>
+      <h3>Naissance</h3>
+      <p style="margin:0;font-size:0.85rem">Une cellule morte avec <strong>exactement 3 voisins</strong> devient vivante.</p>
+    </div>
+  </div>
+
+  <div class="card reveal" style="margin-top:2rem">
+    <div class="act-label">John Conway — 1937–2020</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-year">1970</div>
+          <p style="margin:0;font-size:0.88rem">Conway publie le Jeu de la Vie dans la revue <em>Scientific American</em>. La communauté des mathématiciens est fascinée.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-year">1970</div>
+          <p style="margin:0;font-size:0.88rem">Le <em>Gosper Glider Gun</em> est découvert en quelques semaines, réfutant la conjecture de Conway selon laquelle aucune forme ne pouvait croître indéfiniment.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-year">1982</div>
+          <p style="margin:0;font-size:0.88rem">Preuve que le Jeu de la Vie est Turing-complet : on peut y simuler n'importe quel calcul.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div>
+          <div class="tl-year">2019</div>
+          <p style="margin:0;font-size:0.88rem">Un ordinateur fonctionnel est construit <em>à l'intérieur</em> du Jeu de la Vie, capable de simuler… le Jeu de la Vie lui-même.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ PLAY ═══════════════════ -->
+<section id="play">
+  <div class="act-label">Acte II — Explorez</div>
+  <h2>Dessinez, observez, découvrez</h2>
+  <p class="lead">Cliquez sur la grille pour faire naître des cellules. Lancez la simulation et voyez ce qui se passe. Allez-vous découvrir une forme stable ? Un oscillateur ? Un planeur ?</p>
+
+  <div class="game-container reveal">
+    <div class="game-controls">
+      <button class="btn primary" id="playBtn" onclick="togglePlay('main')">▶ Lancer</button>
+      <button class="btn" onclick="stepOnce('main')">Étape</button>
+      <button class="btn danger" onclick="clearGrid('main')">✕ Effacer</button>
+      <button class="btn" onclick="randomize('main')">⊕ Aléatoire</button>
+    </div>
+    <div class="slider-row">
+      <label>Vitesse</label>
+      <input type="range" min="1" max="30" value="8" id="speedMain" oninput="setSpeed('main',this.value)">
+      <span id="speedMainVal">8 gen/s</span>
+    </div>
+    <canvas id="mainCanvas" style="margin-top:1rem;max-width:100%"></canvas>
+    <div class="stats-bar">
+      Génération <span id="mainGen">0</span> &nbsp;·&nbsp;
+      Cellules vivantes <span id="mainPop">0</span>
+    </div>
+  </div>
+
+  <div class="callout reveal">
+    <p>💡 Essayez de dessiner un groupe de cellules en ligne ou en carré. Certaines configurations sont stables, d'autres oscillent, d'autres encore se déplacent à travers la grille.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ FORMES ═══════════════════ -->
+<section id="forms">
+  <div class="act-label">Acte III — Formes classiques</div>
+  <h2>Des structures qui ont un nom</h2>
+  <p class="lead">Ces configurations ont été découvertes et cataloguées. Chacune a un comportement précis et reproductible.</p>
+
+  <div class="pattern-grid reveal" id="patternGrid"></div>
+
+  <div class="game-container reveal">
+    <div class="game-controls">
+      <button class="btn primary" id="playBtn2" onclick="togglePlay('demo')">▶ Lancer</button>
+      <button class="btn" onclick="stepOnce('demo')">Étape</button>
+      <button class="btn danger" onclick="clearGrid('demo')">✕ Effacer</button>
+    </div>
+    <div class="slider-row">
+      <label>Vitesse</label>
+      <input type="range" min="1" max="30" value="6" id="speedDemo" oninput="setSpeed('demo',this.value)">
+      <span id="speedDemoVal">6 gen/s</span>
+    </div>
+    <canvas id="demoCanvas" style="margin-top:1rem;max-width:100%"></canvas>
+    <div class="stats-bar">
+      Génération <span id="demoGen">0</span> &nbsp;·&nbsp;
+      Cellules vivantes <span id="demoPop">0</span>
+    </div>
+  </div>
+
+  <div class="callout amber reveal">
+    <p>🔬 Sélectionnez une forme ci-dessus pour la charger sur la grille. Essayez ensuite de la reproduire vous-même sur la grille libre de l'Acte II.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ COMPLEX ═══════════════════ -->
+<section id="complex">
+  <div class="act-label">Acte IV — Formes complexes</div>
+  <h2>Au-delà de l'imagination</h2>
+  <p class="lead">Ces structures, vous ne les auriez jamais trouvées en jouant librement. Elles ont nécessité des années de recherche mathématique et informatique.</p>
+
+  <div class="pattern-grid reveal" id="complexGrid"></div>
+
+  <div class="game-container reveal">
+    <div class="game-controls">
+      <button class="btn primary" id="playBtn3" onclick="togglePlay('complex')">▶ Lancer</button>
+      <button class="btn" onclick="stepOnce('complex')">Étape</button>
+      <button class="btn danger" onclick="clearGrid('complex')">✕ Effacer</button>
+    </div>
+    <div class="slider-row">
+      <label>Vitesse</label>
+      <input type="range" min="1" max="60" value="15" id="speedComplex" oninput="setSpeed('complex',this.value)">
+      <span id="speedComplexVal">15 gen/s</span>
+    </div>
+    <canvas id="complexCanvas" style="margin-top:1rem;max-width:100%"></canvas>
+    <div class="stats-bar">
+      Génération <span id="complexGen">0</span> &nbsp;·&nbsp;
+      Cellules vivantes <span id="complexPop">0</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FINALE ═══════════════════ -->
+<section id="finale">
+  <div class="act-label">Épilogue — L'infini</div>
+  <h2>Quand le simple devient universel</h2>
+
+  <p class="lead">Vous avez commencé avec 4 règles. Vous venez de voir des planeurs, des oscillateurs, des canons à planeurs.</p>
+  <p>Maintenant, imaginez aller encore plus loin.</p>
+
+  <div class="finale-grid reveal">
+    <div class="finale-card">
+      <div class="fc-icon">Complexité computationnelle</div>
+      <h3>Un ordinateur dans le jeu</h3>
+      <p style="font-size:0.88rem">Des chercheurs ont construit des portes logiques, des mémoires et des processeurs entiers en utilisant uniquement des configurations du Jeu de la Vie.</p>
+    </div>
+    <div class="finale-card">
+      <div class="fc-icon">Turing-completeness · 1982</div>
+      <h3>Tout calcul est possible</h3>
+      <p style="font-size:0.88rem">Le Jeu de la Vie est <em>Turing-complet</em> : toute opération que peut effectuer un ordinateur peut être simulée dans cette grille infinie.</p>
+    </div>
+    <div class="finale-card">
+      <div class="fc-icon">Mise en abyme</div>
+      <h3>Le jeu dans le jeu</h3>
+      <p style="font-size:0.88rem">En 2018, un groupe a construit une version fonctionnelle du Jeu de la Vie… jouant au Jeu de la Vie, chaque "cellule" étant elle-même une simulation complète.</p>
+    </div>
+    <div class="finale-card">
+      <div class="fc-icon">Biologie computationnelle</div>
+      <h3>Un modèle du vivant</h3>
+      <p style="font-size:0.88rem">Les règles simples du Jeu de la Vie reproduisent des phénomènes réels : croissance cellulaire, formation de motifs, comportements émergents.</p>
+    </div>
+  </div>
+
+  <div class="callout green reveal" style="margin:2rem 0">
+    <p>Ce que vous avez exploré aujourd'hui n'est qu'un fragment infinitésimal de ce que contient cette grille. La bibliothèque de LifeWiki recense plus de <strong>10 000 configurations nommées</strong> — et de nouvelles sont découvertes chaque année.</p>
+  </div>
+
+  <div style="text-align:center;padding:3rem 0 1rem;border-top:1px solid var(--border);margin-top:2rem">
+    <p class="act-label" style="justify-content:center">John Conway · 1937–2020</p>
+    <blockquote style="font-family:var(--serif);font-size:1.5rem;color:var(--muted);font-style:italic;max-width:600px;margin:0 auto;line-height:1.4">
+      "Ce jeu n'a pas de but. Il se joue lui-même."
+    </blockquote>
+  </div>
+</section>
+
+<script>
+// ══════════════════════════════════════════════════
+// GAME ENGINE
+// ══════════════════════════════════════════════════
+
+const CELL = 12;
+const instances = {};
+
+function createInstance(id, canvasId, cols, rows) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  canvas.width = cols * CELL;
+  canvas.height = rows * CELL;
+
+  const grid = Array.from({length: rows}, () => new Uint8Array(cols));
+  const next = Array.from({length: rows}, () => new Uint8Array(cols));
+
+  instances[id] = {
+    canvas, ctx: canvas.getContext('2d'),
+    grid, next, cols, rows,
+    running: false, gen: 0, speed: id === 'complex' ? 15 : (id === 'demo' ? 6 : 8),
+    raf: null, lastTime: 0, drawing: false
+  };
+
+  setupEvents(id);
+  render(id);
+  return instances[id];
+}
+
+function setupEvents(id) {
+  const inst = instances[id];
+  const c = inst.canvas;
+  let painting = false;
+  let paintVal = 1;
+
+  function getCell(e) {
+    const rect = c.getBoundingClientRect();
+    const scaleX = inst.cols / rect.width;
+    const scaleY = inst.rows / rect.height;
+    const touch = e.touches ? e.touches[0] : e;
+    const col = Math.floor((touch.clientX - rect.left) * scaleX);
+    const row = Math.floor((touch.clientY - rect.top) * scaleY);
+    return [col, row];
+  }
+
+  c.addEventListener('mousedown', e => {
+    painting = true;
+    const [col, row] = getCell(e);
+    if (col >= 0 && col < inst.cols && row >= 0 && row < inst.rows) {
+      paintVal = inst.grid[row][col] ? 0 : 1;
+      inst.grid[row][col] = paintVal;
+      updateStats(id);
+      render(id);
+    }
+  });
+  c.addEventListener('mousemove', e => {
+    if (!painting) return;
+    const [col, row] = getCell(e);
+    if (col >= 0 && col < inst.cols && row >= 0 && row < inst.rows) {
+      inst.grid[row][col] = paintVal;
+      updateStats(id);
+      render(id);
+    }
+  });
+  window.addEventListener('mouseup', () => { painting = false; });
+
+  c.addEventListener('touchstart', e => {
+    e.preventDefault(); painting = true;
+    const [col, row] = getCell(e);
+    if (col >= 0 && col < inst.cols && row >= 0 && row < inst.rows) {
+      paintVal = inst.grid[row][col] ? 0 : 1;
+      inst.grid[row][col] = paintVal;
+      updateStats(id); render(id);
+    }
+  }, {passive: false});
+  c.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!painting) return;
+    const [col, row] = getCell(e);
+    if (col >= 0 && col < inst.cols && row >= 0 && row < inst.rows) {
+      inst.grid[row][col] = paintVal;
+      updateStats(id); render(id);
+    }
+  }, {passive: false});
+  window.addEventListener('touchend', () => { painting = false; });
+}
+
+function countNeighbors(grid, row, col, rows, cols) {
+  let n = 0;
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      if (dr === 0 && dc === 0) continue;
+      const r = (row + dr + rows) % rows;
+      const c = (col + dc + cols) % cols;
+      n += grid[r][c];
+    }
+  }
+  return n;
+}
+
+function step(id) {
+  const inst = instances[id];
+  const {grid, next, rows, cols} = inst;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const n = countNeighbors(grid, r, c, rows, cols);
+      const alive = grid[r][c];
+      next[r][c] = alive ? (n === 2 || n === 3 ? 1 : 0) : (n === 3 ? 1 : 0);
+    }
+  }
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) grid[r][c] = next[r][c];
+  }
+  inst.gen++;
+  updateStats(id);
+}
+
+function render(id) {
+  const inst = instances[id];
+  const {ctx, grid, rows, cols} = inst;
+  const W = inst.canvas.width, H = inst.canvas.height;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d14';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5;
+  for (let c = 0; c <= cols; c++) {
+    ctx.beginPath(); ctx.moveTo(c * CELL, 0); ctx.lineTo(c * CELL, H); ctx.stroke();
+  }
+  for (let r = 0; r <= rows; r++) {
+    ctx.beginPath(); ctx.moveTo(0, r * CELL); ctx.lineTo(W, r * CELL); ctx.stroke();
+  }
+
+  // Cells
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (grid[r][c]) {
+        ctx.fillStyle = '#7c6fff';
+        ctx.shadowColor = '#7c6fff';
+        ctx.shadowBlur = 4;
+        ctx.fillRect(c * CELL + 1, r * CELL + 1, CELL - 2, CELL - 2);
+        ctx.shadowBlur = 0;
+      }
+    }
+  }
+}
+
+function updateStats(id) {
+  const inst = instances[id];
+  let pop = 0;
+  for (let r = 0; r < inst.rows; r++)
+    for (let c = 0; c < inst.cols; c++) pop += inst.grid[r][c];
+
+  const genEl = document.getElementById(id + 'Gen');
+  const popEl = document.getElementById(id + 'Pop');
+  if (genEl) genEl.textContent = inst.gen;
+  if (popEl) popEl.textContent = pop;
+}
+
+function loop(id, timestamp) {
+  const inst = instances[id];
+  if (!inst.running) return;
+  const interval = 1000 / inst.speed;
+  if (timestamp - inst.lastTime >= interval) {
+    step(id);
+    render(id);
+    inst.lastTime = timestamp;
+  }
+  inst.raf = requestAnimationFrame(t => loop(id, t));
+}
+
+function togglePlay(id) {
+  const inst = instances[id];
+  inst.running = !inst.running;
+  const btnId = id === 'main' ? 'playBtn' : (id === 'demo' ? 'playBtn2' : 'playBtn3');
+  const btn = document.getElementById(btnId);
+  if (inst.running) {
+    if (btn) { btn.textContent = '⏸ Pause'; btn.classList.add('active'); }
+    inst.raf = requestAnimationFrame(t => loop(id, t));
+  } else {
+    if (btn) { btn.textContent = '▶ Lancer'; btn.classList.remove('active'); }
+    if (inst.raf) cancelAnimationFrame(inst.raf);
+  }
+}
+
+function stepOnce(id) {
+  step(id);
+  render(id);
+}
+
+function clearGrid(id) {
+  const inst = instances[id];
+  if (inst.running) togglePlay(id);
+  for (let r = 0; r < inst.rows; r++) inst.grid[r].fill(0);
+  inst.gen = 0;
+  updateStats(id);
+  render(id);
+}
+
+function randomize(id) {
+  const inst = instances[id];
+  for (let r = 0; r < inst.rows; r++)
+    for (let c = 0; c < inst.cols; c++)
+      inst.grid[r][c] = Math.random() < 0.28 ? 1 : 0;
+  inst.gen = 0;
+  updateStats(id);
+  render(id);
+}
+
+function setSpeed(id, val) {
+  instances[id].speed = +val;
+  const el = document.getElementById('speed' + id.charAt(0).toUpperCase() + id.slice(1) + 'Val');
+  if (el) el.textContent = val + ' gen/s';
+}
+
+function placePattern(id, pattern, centerRow, centerCol) {
+  const inst = instances[id];
+  const offsetR = centerRow - Math.floor(pattern.length / 2);
+  const offsetC = centerCol - Math.floor(pattern[0].length / 2);
+  for (let r = 0; r < pattern.length; r++) {
+    for (let c = 0; c < pattern[r].length; c++) {
+      const tr = offsetR + r, tc = offsetC + c;
+      if (tr >= 0 && tr < inst.rows && tc >= 0 && tc < inst.cols)
+        inst.grid[tr][tc] = pattern[r][c];
+    }
+  }
+  render(id);
+  updateStats(id);
+}
+
+// ══════════════════════════════════════════════════
+// PATTERNS
+// ══════════════════════════════════════════════════
+
+const PATTERNS_BASIC = [
+  {
+    name: 'Block', type: 'stable', desc: 'Forme stable, ne bouge pas',
+    pattern: [[1,1],[1,1]],
+    preview: [[1,1],[1,1]]
+  },
+  {
+    name: 'Beehive', type: 'stable', desc: 'Ruche, stable à 6 cellules',
+    pattern: [[0,1,1,0],[1,0,0,1],[0,1,1,0]],
+    preview: [[0,1,1,0],[1,0,0,1],[0,1,1,0]]
+  },
+  {
+    name: 'Blinker', type: 'oscillator', desc: 'Oscille entre 2 états',
+    pattern: [[1,1,1]],
+    preview: [[1,1,1],[0,0,0],[0,0,0]]
+  },
+  {
+    name: 'Toad', type: 'oscillator', desc: 'Crapaud, période 2',
+    pattern: [[0,1,1,1],[1,1,1,0]],
+    preview: [[0,1,1,1],[1,1,1,0],[0,0,0,0]]
+  },
+  {
+    name: 'Glider', type: 'spaceship', desc: 'Se déplace en diagonale',
+    pattern: [[0,1,0],[0,0,1],[1,1,1]],
+    preview: [[0,1,0],[0,0,1],[1,1,1]]
+  },
+  {
+    name: 'LWSS', type: 'spaceship', desc: 'Vaisseau spatial léger',
+    pattern: [[1,0,0,1,0],[0,0,0,0,1],[1,0,0,0,1],[0,1,1,1,1]],
+    preview: [[1,0,0,1,0],[0,0,0,0,1],[1,0,0,0,1],[0,1,1,1,1]]
+  }
+];
+
+const PATTERNS_COMPLEX = [
+  {
+    name: 'Gosper Glider Gun', type: 'gun', desc: 'Produit des planeurs à l\'infini',
+    pattern: [
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+      [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+      [1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [1,1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    ],
+    preview: [[1,1,0,0,0],[1,1,0,1,0],[0,0,1,1,0],[0,1,0,0,1],[0,0,1,0,0]]
+  },
+  {
+    name: 'Pulsar', type: 'oscillator', desc: 'Oscille sur période 3',
+    pattern: [
+      [0,0,1,1,1,0,0,0,1,1,1,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [1,0,0,0,0,1,0,1,0,0,0,0,1],
+      [1,0,0,0,0,1,0,1,0,0,0,0,1],
+      [1,0,0,0,0,1,0,1,0,0,0,0,1],
+      [0,0,1,1,1,0,0,0,1,1,1,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,1,1,1,0,0,0,1,1,1,0,0],
+      [1,0,0,0,0,1,0,1,0,0,0,0,1],
+      [1,0,0,0,0,1,0,1,0,0,0,0,1],
+      [1,0,0,0,0,1,0,1,0,0,0,0,1],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,1,1,1,0,0,0,1,1,1,0,0]
+    ],
+    preview: [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[0,0,0,0,0],[0,1,1,1,0]]
+  },
+  {
+    name: 'R-pentomino', type: 'methuselah', desc: 'Évolue pendant 1103 générations',
+    pattern: [[0,1,1],[1,1,0],[0,1,0]],
+    preview: [[0,1,1],[1,1,0],[0,1,0],[0,0,0],[0,0,0]]
+  },
+  {
+    name: 'Diehard', type: 'methuselah', desc: 'Disparaît après 130 générations',
+    pattern: [[0,0,0,0,0,0,1,0],[1,1,0,0,0,0,0,0],[0,1,0,0,0,1,1,1]],
+    preview: [[0,0,0,0,1,0],[1,1,0,0,0,0],[0,1,0,1,1,1]]
+  }
+];
+
+function renderPreview(pattern) {
+  const rows = pattern.length;
+  const cols = pattern[0].length;
+  let html = `<div class="pattern-preview" style="grid-template-columns:repeat(${cols},8px);grid-template-rows:repeat(${rows},8px)">`;
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++)
+      html += `<div class="pc ${pattern[r][c] ? 'on' : 'off'}"></div>`;
+  return html + '</div>';
+}
+
+const typeLabel = {stable:'Stable',oscillator:'Oscillateur',spaceship:'Vaisseau',gun:'Canon',methuselah:'Méthusélah'};
+const typeColor = {stable:'var(--green)',oscillator:'var(--accent)',spaceship:'var(--accent2)',gun:'var(--amber)',methuselah:'#ff9966'};
+
+function buildPatternGrid(containerId, patterns, instanceId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = patterns.map((p, i) => `
+    <div class="pattern-card" id="pc_${containerId}_${i}" onclick="loadPattern('${instanceId}', ${JSON.stringify(JSON.stringify(p.pattern))}, '${containerId}', ${i})">
+      ${renderPreview(p.preview)}
+      <div class="pattern-name">${p.name}</div>
+      <div class="pattern-desc" style="color:${typeColor[p.type]};font-weight:500;font-size:0.7rem">${typeLabel[p.type]}</div>
+      <div class="pattern-desc">${p.desc}</div>
+    </div>
+  `).join('');
+}
+
+function loadPattern(instanceId, patternJson, gridId, idx) {
+  const pattern = JSON.parse(patternJson);
+  const inst = instances[instanceId];
+  if (!inst) return;
+
+  // Clear and stop
+  if (inst.running) togglePlay(instanceId);
+  for (let r = 0; r < inst.rows; r++) inst.grid[r].fill(0);
+  inst.gen = 0;
+
+  // Center it
+  const cr = Math.floor(inst.rows / 2);
+  const cc = Math.floor(inst.cols / 2);
+  placePattern(instanceId, pattern, cr, cc);
+
+  // Visual feedback
+  document.querySelectorAll(`#${gridId} .pattern-card`).forEach(el => el.classList.remove('selected'));
+  const sel = document.getElementById(`pc_${gridId}_${idx}`);
+  if (sel) sel.classList.add('selected');
+}
+
+// ══════════════════════════════════════════════════
+// HERO BACKGROUND
+// ══════════════════════════════════════════════════
+
+function initHeroBg() {
+  const canvas = document.getElementById('heroBg');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const CELL_S = 16;
+  let cols = Math.floor(canvas.width / CELL_S) + 2;
+  let rows = Math.floor(canvas.height / CELL_S) + 2;
+  let grid = Array.from({length: rows}, () => new Uint8Array(cols));
+  let ng = Array.from({length: rows}, () => new Uint8Array(cols));
+
+  // Seed
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++)
+      grid[r][c] = Math.random() < 0.3 ? 1 : 0;
+
+  function stepBg() {
+    cols = Math.floor(canvas.width / CELL_S) + 2;
+    rows = Math.floor(canvas.height / CELL_S) + 2;
+    for (let r = 0; r < rows; r++) {
+      if (!ng[r]) ng[r] = new Uint8Array(cols);
+      for (let c = 0; c < cols; c++) {
+        let n = 0;
+        for (let dr = -1; dr <= 1; dr++)
+          for (let dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const rr = (r + dr + rows) % rows;
+            const cc2 = (c + dc + cols) % cols;
+            if (grid[rr] && grid[rr][cc2]) n++;
+          }
+        const alive = grid[r] && grid[r][c];
+        ng[r][c] = alive ? (n === 2 || n === 3 ? 1 : 0) : (n === 3 ? 1 : 0);
+      }
+    }
+    for (let r = 0; r < rows; r++) {
+      if (!grid[r]) grid[r] = new Uint8Array(cols);
+      for (let c = 0; c < cols; c++) grid[r][c] = ng[r][c];
+    }
+  }
+
+  function renderBg() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (grid[r] && grid[r][c]) {
+          ctx.fillStyle = '#7c6fff';
+          ctx.fillRect(c * CELL_S, r * CELL_S, CELL_S - 1, CELL_S - 1);
+        }
+      }
+    }
+  }
+
+  let lastT = 0;
+  function bgLoop(t) {
+    if (t - lastT > 120) { stepBg(); renderBg(); lastT = t; }
+    requestAnimationFrame(bgLoop);
+  }
+  requestAnimationFrame(bgLoop);
+}
+
+// ══════════════════════════════════════════════════
+// SCROLL & REVEAL
+// ══════════════════════════════════════════════════
+
+function initScroll() {
+  const bar = document.getElementById('progressBar');
+  const sections = document.querySelectorAll('section[id], #finale');
+  const navLinks = document.querySelectorAll('nav a');
+
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const maxScroll = document.body.scrollHeight - window.innerHeight;
+    bar.style.width = (scrolled / maxScroll * 100) + '%';
+
+    // Active nav
+    let current = '';
+    sections.forEach(s => {
+      if (scrolled >= s.offsetTop - 120) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, {threshold: 0.1, rootMargin: '0px 0px -60px 0px'});
+  reveals.forEach(el => obs.observe(el));
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  initHeroBg();
+  initScroll();
+
+  // Compute canvas sizes based on container
+  const MAIN_COLS = 55, MAIN_ROWS = 35;
+  const DEMO_COLS = 45, DEMO_ROWS = 30;
+  const CPX_COLS = 55, CPX_ROWS = 30;
+
+  createInstance('main', 'mainCanvas', MAIN_COLS, MAIN_ROWS);
+  createInstance('demo', 'demoCanvas', DEMO_COLS, DEMO_ROWS);
+  createInstance('complex', 'complexCanvas', CPX_COLS, CPX_ROWS);
+
+  buildPatternGrid('patternGrid', PATTERNS_BASIC, 'demo');
+  buildPatternGrid('complexGrid', PATTERNS_COMPLEX, 'complex');
+
+  updateStats('main');
+  updateStats('demo');
+  updateStats('complex');
+});
+</script>
+</body>
+</html>
