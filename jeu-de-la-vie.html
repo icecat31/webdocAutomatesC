@@ -461,14 +461,14 @@
 
   <div class="game-container reveal">
     <div class="game-controls">
-      <button class="btn primary" id="playBtn" onclick="togglePlay('main')">▶ Lancer</button>
-      <button class="btn" onclick="stepOnce('main')">Étape</button>
-      <button class="btn danger" onclick="clearGrid('main')">✕ Effacer</button>
-      <button class="btn" onclick="randomize('main')">⊕ Aléatoire</button>
+      <button class="btn primary" id="playBtn">▶ Lancer</button>
+      <button class="btn" id="stepMain">Étape</button>
+      <button class="btn danger" id="clearMain">✕ Effacer</button>
+      <button class="btn" id="randomMain">⊕ Aléatoire</button>
     </div>
     <div class="slider-row">
       <label>Vitesse</label>
-      <input type="range" min="1" max="30" value="8" id="speedMain" oninput="setSpeed('main',this.value)">
+      <input type="range" min="1" max="30" value="8" id="speedMain">
       <span id="speedMainVal">8 gen/s</span>
     </div>
     <canvas id="mainCanvas" style="margin-top:1rem;max-width:100%"></canvas>
@@ -493,13 +493,13 @@
 
   <div class="game-container reveal">
     <div class="game-controls">
-      <button class="btn primary" id="playBtn2" onclick="togglePlay('demo')">▶ Lancer</button>
-      <button class="btn" onclick="stepOnce('demo')">Étape</button>
-      <button class="btn danger" onclick="clearGrid('demo')">✕ Effacer</button>
+      <button class="btn primary" id="playBtn2">▶ Lancer</button>
+      <button class="btn" id="stepDemo">Étape</button>
+      <button class="btn danger" id="clearDemo">✕ Effacer</button>
     </div>
     <div class="slider-row">
       <label>Vitesse</label>
-      <input type="range" min="1" max="30" value="6" id="speedDemo" oninput="setSpeed('demo',this.value)">
+      <input type="range" min="1" max="30" value="6" id="speedDemo">
       <span id="speedDemoVal">6 gen/s</span>
     </div>
     <canvas id="demoCanvas" style="margin-top:1rem;max-width:100%"></canvas>
@@ -524,13 +524,13 @@
 
   <div class="game-container reveal">
     <div class="game-controls">
-      <button class="btn primary" id="playBtn3" onclick="togglePlay('complex')">▶ Lancer</button>
-      <button class="btn" onclick="stepOnce('complex')">Étape</button>
-      <button class="btn danger" onclick="clearGrid('complex')">✕ Effacer</button>
+      <button class="btn primary" id="playBtn3">▶ Lancer</button>
+      <button class="btn" id="stepComplex">Étape</button>
+      <button class="btn danger" id="clearComplex">✕ Effacer</button>
     </div>
     <div class="slider-row">
       <label>Vitesse</label>
-      <input type="range" min="1" max="60" value="15" id="speedComplex" oninput="setSpeed('complex',this.value)">
+      <input type="range" min="1" max="60" value="15" id="speedComplex">
       <span id="speedComplexVal">15 gen/s</span>
     </div>
     <canvas id="complexCanvas" style="margin-top:1rem;max-width:100%"></canvas>
@@ -584,244 +584,7 @@
   </div>
 </section>
 
-<script>
-// ══════════════════════════════════════════════════
-// GAME ENGINE
-// ══════════════════════════════════════════════════
-
-const CELL = 12;
-const instances = {};
-
-function createInstance(id, canvasId, cols, rows) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  canvas.width = cols * CELL;
-  canvas.height = rows * CELL;
-
-  const grid = Array.from({length: rows}, () => new Uint8Array(cols));
-  const next = Array.from({length: rows}, () => new Uint8Array(cols));
-
-  instances[id] = {
-    canvas, ctx: canvas.getContext('2d'),
-    grid, next, cols, rows,
-    running: false, gen: 0, speed: id === 'complex' ? 15 : (id === 'demo' ? 6 : 8),
-    raf: null, lastTime: 0, drawing: false
-  };
-
-  setupEvents(id);
-  render(id);
-  return instances[id];
-}
-
-function setupEvents(id) {
-  const inst = instances[id];
-  const c = inst.canvas;
-  let painting = false;
-  let paintVal = 1;
-
-  function getCell(e) {
-    const rect = c.getBoundingClientRect();
-    const scaleX = inst.cols / rect.width;
-    const scaleY = inst.rows / rect.height;
-    const touch = e.touches ? e.touches[0] : e;
-    const col = Math.floor((touch.clientX - rect.left) * scaleX);
-    const row = Math.floor((touch.clientY - rect.top) * scaleY);
-    return [col, row];
-  }
-
-  c.addEventListener('mousedown', e => {
-    painting = true;
-    const [col, row] = getCell(e);
-    if (col >= 0 && col < inst.cols && row >= 0 && row < inst.rows) {
-      paintVal = inst.grid[row][col] ? 0 : 1;
-      inst.grid[row][col] = paintVal;
-      updateStats(id);
-      render(id);
-    }
-  });
-  c.addEventListener('mousemove', e => {
-    if (!painting) return;
-    const [col, row] = getCell(e);
-    if (col >= 0 && col < inst.cols && row >= 0 && row < inst.rows) {
-      inst.grid[row][col] = paintVal;
-      updateStats(id);
-      render(id);
-    }
-  });
-  window.addEventListener('mouseup', () => { painting = false; });
-
-  c.addEventListener('touchstart', e => {
-    e.preventDefault(); painting = true;
-    const [col, row] = getCell(e);
-    if (col >= 0 && col < inst.cols && row >= 0 && row < inst.rows) {
-      paintVal = inst.grid[row][col] ? 0 : 1;
-      inst.grid[row][col] = paintVal;
-      updateStats(id); render(id);
-    }
-  }, {passive: false});
-  c.addEventListener('touchmove', e => {
-    e.preventDefault();
-    if (!painting) return;
-    const [col, row] = getCell(e);
-    if (col >= 0 && col < inst.cols && row >= 0 && row < inst.rows) {
-      inst.grid[row][col] = paintVal;
-      updateStats(id); render(id);
-    }
-  }, {passive: false});
-  window.addEventListener('touchend', () => { painting = false; });
-}
-
-function countNeighbors(grid, row, col, rows, cols) {
-  let n = 0;
-  for (let dr = -1; dr <= 1; dr++) {
-    for (let dc = -1; dc <= 1; dc++) {
-      if (dr === 0 && dc === 0) continue;
-      const r = (row + dr + rows) % rows;
-      const c = (col + dc + cols) % cols;
-      n += grid[r][c];
-    }
-  }
-  return n;
-}
-
-function step(id) {
-  const inst = instances[id];
-  const {grid, next, rows, cols} = inst;
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const n = countNeighbors(grid, r, c, rows, cols);
-      const alive = grid[r][c];
-      next[r][c] = alive ? (n === 2 || n === 3 ? 1 : 0) : (n === 3 ? 1 : 0);
-    }
-  }
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) grid[r][c] = next[r][c];
-  }
-  inst.gen++;
-  updateStats(id);
-}
-
-function render(id) {
-  const inst = instances[id];
-  const {ctx, grid, rows, cols} = inst;
-  const W = inst.canvas.width, H = inst.canvas.height;
-
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#0d0d14';
-  ctx.fillRect(0, 0, W, H);
-
-  // Grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-  ctx.lineWidth = 0.5;
-  for (let c = 0; c <= cols; c++) {
-    ctx.beginPath(); ctx.moveTo(c * CELL, 0); ctx.lineTo(c * CELL, H); ctx.stroke();
-  }
-  for (let r = 0; r <= rows; r++) {
-    ctx.beginPath(); ctx.moveTo(0, r * CELL); ctx.lineTo(W, r * CELL); ctx.stroke();
-  }
-
-  // Cells
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      if (grid[r][c]) {
-        ctx.fillStyle = '#7c6fff';
-        ctx.shadowColor = '#7c6fff';
-        ctx.shadowBlur = 4;
-        ctx.fillRect(c * CELL + 1, r * CELL + 1, CELL - 2, CELL - 2);
-        ctx.shadowBlur = 0;
-      }
-    }
-  }
-}
-
-function updateStats(id) {
-  const inst = instances[id];
-  let pop = 0;
-  for (let r = 0; r < inst.rows; r++)
-    for (let c = 0; c < inst.cols; c++) pop += inst.grid[r][c];
-
-  const genEl = document.getElementById(id + 'Gen');
-  const popEl = document.getElementById(id + 'Pop');
-  if (genEl) genEl.textContent = inst.gen;
-  if (popEl) popEl.textContent = pop;
-}
-
-function loop(id, timestamp) {
-  const inst = instances[id];
-  if (!inst.running) return;
-  const interval = 1000 / inst.speed;
-  if (timestamp - inst.lastTime >= interval) {
-    step(id);
-    render(id);
-    inst.lastTime = timestamp;
-  }
-  inst.raf = requestAnimationFrame(t => loop(id, t));
-}
-
-function togglePlay(id) {
-  const inst = instances[id];
-  inst.running = !inst.running;
-  const btnId = id === 'main' ? 'playBtn' : (id === 'demo' ? 'playBtn2' : 'playBtn3');
-  const btn = document.getElementById(btnId);
-  if (inst.running) {
-    if (btn) { btn.textContent = '⏸ Pause'; btn.classList.add('active'); }
-    inst.raf = requestAnimationFrame(t => loop(id, t));
-  } else {
-    if (btn) { btn.textContent = '▶ Lancer'; btn.classList.remove('active'); }
-    if (inst.raf) cancelAnimationFrame(inst.raf);
-  }
-}
-
-function stepOnce(id) {
-  step(id);
-  render(id);
-}
-
-function clearGrid(id) {
-  const inst = instances[id];
-  if (inst.running) togglePlay(id);
-  for (let r = 0; r < inst.rows; r++) inst.grid[r].fill(0);
-  inst.gen = 0;
-  updateStats(id);
-  render(id);
-}
-
-function randomize(id) {
-  const inst = instances[id];
-  for (let r = 0; r < inst.rows; r++)
-    for (let c = 0; c < inst.cols; c++)
-      inst.grid[r][c] = Math.random() < 0.28 ? 1 : 0;
-  inst.gen = 0;
-  updateStats(id);
-  render(id);
-}
-
-function setSpeed(id, val) {
-  instances[id].speed = +val;
-  const el = document.getElementById('speed' + id.charAt(0).toUpperCase() + id.slice(1) + 'Val');
-  if (el) el.textContent = val + ' gen/s';
-}
-
-function placePattern(id, pattern, centerRow, centerCol) {
-  const inst = instances[id];
-  const offsetR = centerRow - Math.floor(pattern.length / 2);
-  const offsetC = centerCol - Math.floor(pattern[0].length / 2);
-  for (let r = 0; r < pattern.length; r++) {
-    for (let c = 0; c < pattern[r].length; c++) {
-      const tr = offsetR + r, tc = offsetC + c;
-      if (tr >= 0 && tr < inst.rows && tc >= 0 && tc < inst.cols)
-        inst.grid[tr][tc] = pattern[r][c];
-    }
-  }
-  render(id);
-  updateStats(id);
-}
-
-// ══════════════════════════════════════════════════
-// PATTERNS
-// ══════════════════════════════════════════════════
-
-const PATTERNS_BASIC = [
+<script src="jeu-de-la-vie.js"></script>
   {
     name: 'Block', type: 'stable', desc: 'Forme stable, ne bouge pas',
     pattern: [[1,1],[1,1]],
