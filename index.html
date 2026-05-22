@@ -27,7 +27,7 @@
 <div class="sidebar-toc" id="sidebarToc"></div>
 
 <!-- ─── SIDEBAR SANDBOX BUTTONS ─── -->
-<button class="sandbox-btn" id="sandboxGameOfLife" onclick="goToSandbox('jeu-de-la-vie.html')">🎮</button>
+<button class="sandbox-btn" id="sandboxGameOfLife" onclick="scrollToSection('#jeu-de-la-vie')">🎮</button>
 <button class="sandbox-btn" id="sandboxFire" onclick="alert('Sandbox Feu (à développer)')">🔥</button>
 <button class="sandbox-btn" id="sandboxGas" onclick="alert('Sandbox Gaz (à développer)')">💨</button>
 <button class="sandbox-btn" id="sandboxFinal" onclick="alert('Sandbox Finale (à développer)')">✨</button>
@@ -139,47 +139,37 @@
   </div>
 
   <div class="card reveal">
-    <a href="jeu-de-la-vie.html" class="btn primary" style="margin-bottom: 1.5rem;">→ Explorer le Jeu de la Vie en Direct</a>
-    <h3>Figures remarquables</h3>
-    <p>Les chercheurs ont découvert et catalogué des milliers de configurations stables ou récurrentes :</p>
+    <h3>Explorer le Jeu de la Vie</h3>
+    <p>Interagissez directement avec la grille ci-dessous : dessinez, lancez la simulation, chargez des motifs et observez l'évolution.</p>
 
-    <div class="timeline">
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div>
-          <div class="tl-year">Bloc</div>
-          <p>Une structure 2×2 qui reste inchangée. La configuration la plus stable possible.</p>
-        </div>
+    <div class="game-container" style="margin-top:1rem">
+      <div class="game-controls">
+        <button class="btn primary" id="playBtn">▶ Lancer</button>
+        <button class="btn" id="stepMain">Étape</button>
+        <button class="btn danger" id="clearMain">✕ Effacer</button>
+        <button class="btn" id="randomMain">⊕ Aléatoire</button>
       </div>
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div>
-          <div class="tl-year">Oscillateur</div>
-          <p>Des formes qui clignotent périodiquement (par exemple, un « clignotant » qui change tous les deux pas).</p>
-        </div>
+
+      <div class="slider-row">
+        <label>Vitesse</label>
+        <input type="range" min="1" max="30" value="8" id="speedMain">
+        <span id="speedMainVal">8 gen/s</span>
       </div>
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div>
-          <div class="tl-year">Planeur (Glider)</div>
-          <p>Une forme de cinq cellules qui se déplace diagonalement à travers la grille — l'une des découvertes majeures.</p>
-        </div>
-      </div>
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div>
-          <div class="tl-year">Gosper Glider Gun</div>
-          <p>Une structure énorme (environ 36 × 20 cellules) qui produit continuellement des planeurs. Elle a réfuté la conjecture de Conway sur la finitude.</p>
-        </div>
-      </div>
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div>
-          <div class="tl-year">Turing Complétude (1982)</div>
-          <p>Preuve mathématique que le Jeu de la Vie peut simuler n'importe quel calcul — il est aussi puissant qu'un ordinateur.</p>
-        </div>
+
+      <canvas id="mainCanvas" style="margin-top:1rem;max-width:100%"></canvas>
+      <div class="stats-bar">
+        Génération <span id="mainGen">0</span> &nbsp;·&nbsp;
+        Cellules vivantes <span id="mainPop">0</span>
       </div>
     </div>
+
+    <div class="divider" style="margin-top:1.5rem"></div>
+
+    <h4 style="margin-top:1rem">Bibliothèque de motifs</h4>
+    <div class="pattern-grid reveal" id="patternGrid"></div>
+
+    <h4 style="margin-top:1rem">Exemples avancés</h4>
+    <div class="pattern-grid reveal" id="complexGrid"></div>
   </div>
 </section>
 
@@ -353,6 +343,8 @@
 </section>
 
 </main>
+
+<script src="jeu-de-la-vie.js"></script>
 
 <script>
   // ─── PROGRESS BAR ─── 
