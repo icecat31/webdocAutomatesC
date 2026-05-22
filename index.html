@@ -440,11 +440,22 @@
     const canvas = document.getElementById('firePreview');
     if (!canvas) return;
 
+    // Use CSS variables for consistent theming
+    const cs = getComputedStyle(document.documentElement);
+    const bg = cs.getPropertyValue('--bg3').trim() || '#1a1a24';
+    const fireColor = cs.getPropertyValue('--accent2').trim() || '#ff6b9d';
+    const burnedColor = cs.getPropertyValue('--muted').trim() || '#8b6f47';
+    const treeColor = cs.getPropertyValue('--green').trim() || '#5a8b6f';
+
+    // match canvas pixel size to rendered size
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+
     const ctx = canvas.getContext('2d');
     const gridSize = 20;
-    const cellSize = canvas.width / gridSize;
+    const cellSize = canvas.clientWidth / gridSize;
 
-    ctx.fillStyle = '#f0eeec';
+    ctx.fillStyle = bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Simulate fire spreading
@@ -453,9 +464,9 @@
         const dist = Math.hypot(i - gridSize / 2, j - gridSize / 2);
         let color;
 
-        if (dist < 3) color = '#c85a54'; // Fire
-        else if (dist < 6) color = '#8b6f47'; // Smoke/Burned
-        else color = '#5a8b6f'; // Trees
+        if (dist < 3) color = fireColor;
+        else if (dist < 6) color = burnedColor;
+        else color = treeColor;
 
         ctx.fillStyle = color;
         ctx.fillRect(i * cellSize, j * cellSize, cellSize - 1, cellSize - 1);
@@ -467,11 +478,18 @@
     const canvas = document.getElementById('gasPreview');
     if (!canvas) return;
 
+    const cs = getComputedStyle(document.documentElement);
+    const bg = cs.getPropertyValue('--bg3').trim() || '#1a1a24';
+    const gasColor = cs.getPropertyValue('--accent').trim() || '#7c6fff';
+
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+
     const ctx = canvas.getContext('2d');
     const gridSize = 20;
-    const cellSize = canvas.width / gridSize;
+    const cellSize = canvas.clientWidth / gridSize;
 
-    ctx.fillStyle = '#f0eeec';
+    ctx.fillStyle = bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Simulate gas diffusion
@@ -480,7 +498,8 @@
         const dist = Math.hypot(i - gridSize / 2, j - gridSize / 2);
         const intensity = Math.max(0, 1 - dist / 10);
 
-        ctx.fillStyle = `rgba(155, 125, 92, ${intensity * 0.6})`;
+        // use RGBA from computed color if needed
+        ctx.fillStyle = `rgba(124,111,255, ${intensity * 0.6})`;
         ctx.fillRect(i * cellSize, j * cellSize, cellSize - 1, cellSize - 1);
       }
     }
