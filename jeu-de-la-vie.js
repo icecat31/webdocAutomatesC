@@ -360,6 +360,14 @@ function renderPreview(pattern) {
 
 const typeLabel = {stable:'Stable',oscillator:'Oscillateur',spaceship:'Vaisseau',gun:'Canon',methuselah:'Méthusélah'};
 const typeColor = {stable:'var(--green)',oscillator:'var(--accent)',spaceship:'var(--accent2)',gun:'var(--amber)',methuselah:'#ff9966'};
+// One-line tooltip explanations for each type (shown on hover over the colored label)
+const typeTooltip = {
+  stable: 'Structure immobile — ne change pas au fil des générations.',
+  oscillator: 'Structure qui oscille entre plusieurs états périodiquement.',
+  spaceship: 'Se déplace à travers la grille (ex: planeur, vaisseau).',
+  gun: 'Produit périodiquement des planeurs ou objets mobiles.',
+  methuselah: 'Évolue pendant de nombreuses générations avant de se stabiliser.'
+};
 
 function buildPatternGrid(containerId, patterns, instanceId) {
   const el = document.getElementById(containerId);
@@ -368,7 +376,7 @@ function buildPatternGrid(containerId, patterns, instanceId) {
     <button type="button" class="pattern-card" id="pc_${containerId}_${i}" draggable="true">
       ${renderPreview(p.preview)}
       <div class="pattern-name">${p.name}</div>
-      <div class="pattern-desc" style="color:${typeColor[p.type]};font-weight:500;font-size:0.7rem">${typeLabel[p.type]}</div>
+      <div class="pattern-desc" style="color:${typeColor[p.type]};font-weight:500;font-size:0.7rem" title="${typeTooltip[p.type] || ''}">${typeLabel[p.type]}</div>
       <div class="pattern-desc">${p.desc}</div>
     </button>
   `).join('');
@@ -504,13 +512,56 @@ function initScroll() {
   reveals.forEach(el => obs.observe(el));
 }
 
+function setupFireAudio() {
+  const button = document.getElementById('fireAudioBtn');
+  const textBlock = document.getElementById('fireText');
+  if (!button || !textBlock || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+    return;
+  }
+
+  let currentUtterance = null;
+
+  const stopReading = () => {
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+      window.speechSynthesis.cancel();
+    }
+    currentUtterance = null;
+    button.classList.remove('is-playing');
+    button.textContent = '🔊';
+  };
+
+  button.addEventListener('click', () => {
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+      stopReading();
+      return;
+    }
+
+    const text = textBlock.innerText.trim().replace(/\s+/g, ' ');
+    if (!text) return;
+
+    currentUtterance = new SpeechSynthesisUtterance(text);
+    currentUtterance.lang = 'fr-FR';
+    currentUtterance.rate = 0.95;
+    currentUtterance.pitch = 1;
+    currentUtterance.onstart = () => {
+      button.classList.add('is-playing');
+      button.textContent = '⏹';
+    };
+    currentUtterance.onend = stopReading;
+    currentUtterance.onerror = stopReading;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(currentUtterance);
+  });
+}
+
 // INIT
 document.addEventListener('DOMContentLoaded', () => {
   initHeroBg();
   initScroll();
+  setupFireAudio();
 
   // Compute canvas sizes based on container
-  const MAIN_COLS = 55, MAIN_ROWS = 35;
+  const MAIN_COLS = 78, MAIN_ROWS = 80;
   const DEMO_COLS = 45, DEMO_ROWS = 30;
   const CPX_COLS = 55, CPX_ROWS = 30;
 
@@ -519,7 +570,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('complexCanvas')) createInstance('complex', 'complexCanvas', CPX_COLS, CPX_ROWS);
 
   buildPatternGrid('patternGrid', PATTERNS_BASIC, 'main');
-  buildPatternGrid('complexGrid', PATTERNS_COMPLEX, 'main');
+  // Do not show advanced patterns in the right column — keep dock populated instead
+  buildPatternGrid('complexGrid', [], 'main');
+  buildPatternGrid('dockGrid', PATTERNS_COMPLEX.slice(0, 4), 'main');
 
   updateStats('main');
   updateStats('demo');

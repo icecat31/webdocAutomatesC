@@ -139,12 +139,6 @@
   </div>
 
   <div class="game-layout reveal">
-    <aside class="pattern-side left">
-      <div class="side-label">Motifs simples</div>
-      <p class="side-note">Cliquez ou glissez un motif vers la grille centrale.</p>
-      <div class="pattern-grid" id="patternGrid"></div>
-    </aside>
-
     <div class="card game-center">
       <h3>Explorer le Jeu de la Vie</h3>
       <p>Interagissez directement avec la grille : dessinez, lancez la simulation, chargez des motifs et observez l'évolution.</p>
@@ -170,12 +164,20 @@
           Cellules vivantes <span id="mainPop">0</span>
         </div>
       </div>
+
+      <div class="pattern-dock">
+        <div class="side-label">Motifs avancés</div>
+        <div class="pattern-grid pattern-dock-grid" id="dockGrid"></div>
+      </div>
     </div>
 
     <aside class="pattern-side right">
-      <div class="side-label">Motifs avancés</div>
-      <p class="side-note">Glissez un motif sur la grille ou cliquez pour l’insérer au centre.</p>
-      <div class="pattern-grid" id="complexGrid"></div>
+      <div class="side-label">Bibliothèque de motifs</div>
+      <p class="side-note">Cliquez ou glissez un motif sur la grille centrale.</p>
+      <div class="side-group">
+        <h4>Motifs simples</h4>
+        <div class="pattern-grid" id="patternGrid"></div>
+      </div>
     </aside>
   </div>
 </section>
@@ -184,58 +186,36 @@
 <section id="feu">
   <div class="act-label">Chapitre 3 — La Propagation du Feu</div>
   <h2>Simuler un incendie avec des automates</h2>
-  <p class="lead">Les incendies de forêt ne se propagent pas aléatoirement. Ils suivent des règles locales : le feu s'étend à un arbre voisin si celui-ci est sec, ralentit s'il pleut, s'accélère avec le vent.</p>
-
-  <div class="card reveal">
-    <h3>La règle du Feu</h3>
-    <p>Un modèle simplifié repose sur trois états pour chaque cellule :</p>
-
-    <div class="rule-grid">
-      <div class="rule-card">
-        <h3>🌲 Arbre</h3>
-        <p>Une cellule verte. Elle peut brûler si au moins un voisin est en feu.</p>
+  <div class="fire-layout reveal">
+    <div class="card fire-copy">
+      <div class="fire-copy-head">
+        <h3>Pourquoi cette simulation est utile</h3>
+        <button type="button" class="fire-audio-btn" id="fireAudioBtn" aria-label="Lire le texte de la simulation de feu">🔊</button>
       </div>
-      <div class="rule-card">
-        <h3>🔥 En Feu</h3>
-        <p>Une cellule rouge. Elle brûle pendant une génération, puis devient cendre.</p>
-      </div>
-      <div class="rule-card">
-        <h3>🩶 Cendre</h3>
-        <p>Une cellule grise. Elle ne se réenflamma pas, modélisant le terrain carbonisé.</p>
+      <div id="fireText">
+        <p class="lead">La simulation de feu de forêt avec un automate cellulaire est très intéressante car elle possède une application réelle, ces simulations sont utilisées par des pompiers pour savoir rapidement le nombre d'hectares de forêt perdus le temps qu’ils arrivent sur les lieux, et où il serait plus bénéfique de commencer à éteindre l’incendie.</p>
+        <p>Dans cette simulation, les cellules ont 4 états :</p>
+
+        <ul class="fire-list">
+          <li><strong>Terrain non combustible :</strong> rochers, lacs et zones impossibles à enflammer.</li>
+          <li><strong>Terrain inflammable :</strong> arbres, herbe et végétation qui peuvent brûler.</li>
+          <li><strong>Terrain en feu :</strong> une zone inflammable qui brûle à l'instant présent.</li>
+          <li><strong>Terrain en cendre :</strong> une zone déjà brûlée qui ne se réenflamme plus.</li>
+        </ul>
+
+        <p>Le changement d’état est simple : une case s’enflamme quand un certain nombre de cases autour d’elle brûlent. Ce seuil dépend de facteurs comme l’humidité, la force du vent, et d’autres conditions environnementales. Ensuite, la case devient cendre après avoir brûlé pendant une étape.</p>
       </div>
     </div>
-  </div>
 
-  <div class="simulation-preview reveal">
-    <h4>Aperçu : Propagation du Feu</h4>
-    <p>Une grille où le feu se propage aux arbres voisins</p>
-    <canvas id="firePreview" style="width: 100%; max-width: 300px; height: 200px;"></canvas>
+    <div class="simulation-preview fire-preview reveal">
+      <h4>A quoi ça ressemble</h4>
+      <p>Une grille discrète montre l’évolution du feu et sa propagation vers les arbres voisins.</p>
+      <canvas id="firePreview" style="width: 100%; max-width: 300px; height: 200px;"></canvas>
+    </div>
   </div>
 
   <div class="callout amber reveal">
     <p>🔬 <strong>Applications réelles :</strong> Ces modèles sont utilisés par les agences de gestion des forêts pour prédire la propagation des feux, évaluer les zones à risque et optimiser les stratégies d'évacuation.</p>
-  </div>
-</section>
-
-<!-- ═════════════════════════════════════════ VIDEO INTERVIEW FEU ═════════════════════════════════════════ -->
-<section id="interview-feu">
-  <div class="act-label">Interview</div>
-  <h2>Expert en simulation de feux de forêt</h2>
-  <p class="lead" style="margin-bottom: 2rem;">Comment les modèles mathématiques aident à comprendre et prévoir les catastrophes naturelles.</p>
-
-  <div class="video-container reveal">
-    <div class="play-icon">▶</div>
-    <h4>Qu'est-ce qui rend un incendie si difficile à maîtriser ?</h4>
-    <p>Cette vidéo présente les défis de la modélisation et les applications pratiques des automates cellulaires dans la gestion des risques.</p>
-  </div>
-
-  <div class="card reveal">
-    <h3>Points clés de l'interview</h3>
-    <ul style="margin-left: 1.5rem; color: var(--text-light);">
-      <li>Les automates cellulaires permettent de tester rapidement des scénarios.</li>
-      <li>Le vent, l'humidité et la végétation introduisent de la complexité réelle.</li>
-      <li>Les simulations aident à évacuer les populations avant que le feu n'arrive.</li>
-    </ul>
   </div>
 </section>
 
@@ -442,9 +422,12 @@
     // Use CSS variables for consistent theming
     const cs = getComputedStyle(document.documentElement);
     const bg = cs.getPropertyValue('--bg3').trim() || '#1a1a24';
-    const fireColor = cs.getPropertyValue('--accent2').trim() || '#ff6b9d';
-    const burnedColor = cs.getPropertyValue('--muted').trim() || '#8b6f47';
+    const fireColor = cs.getPropertyValue('--muted').trim() || '#8b8fa3';
+    const burnedColor = cs.getPropertyValue('--accent2').trim() || '#ff6b9d';
     const treeColor = cs.getPropertyValue('--green').trim() || '#5a8b6f';
+    const rockColor = cs.getPropertyValue('--border2').trim() || '#44454f';
+    const lakeColor = cs.getPropertyValue('--accent').trim() || '#7c6fff';
+    const windColor = cs.getPropertyValue('--amber').trim() || '#ffc94a';
 
     // match canvas pixel size to rendered size
     canvas.width = canvas.clientWidth;
@@ -454,23 +437,77 @@
     const gridSize = 20;
     const cellSize = canvas.clientWidth / gridSize;
 
-    ctx.fillStyle = bg;
+    ctx.fillStyle = '#202433';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Simulate fire spreading
+    // Soft atmospheric background
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, 'rgba(124,111,255,0.18)');
+    gradient.addColorStop(0.55, 'rgba(255,107,157,0.08)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0.06)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Lake in the lower-left corner
+    ctx.fillStyle = 'rgba(124,111,255,0.30)';
+    ctx.beginPath();
+    ctx.ellipse(cellSize * 4.3, cellSize * 15.3, cellSize * 3.4, cellSize * 2.2, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(124,111,255,0.55)';
+    ctx.beginPath();
+    ctx.ellipse(cellSize * 3.4, cellSize * 14.5, cellSize * 1.8, cellSize * 0.55, 0.15, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Wind arrows at the bottom-right
+    ctx.strokeStyle = 'rgba(255,201,74,0.85)';
+    ctx.fillStyle = windColor;
+    ctx.lineWidth = 2;
+    const arrowYs = [16.2, 17.2, 18.2];
+    arrowYs.forEach((y, index) => {
+      const x = 14.6 + index * 0.6;
+      ctx.beginPath();
+      ctx.moveTo(cellSize * (x - 1.5), cellSize * y);
+      ctx.lineTo(cellSize * x, cellSize * y);
+      ctx.lineTo(cellSize * (x - 0.45), cellSize * (y - 0.35));
+      ctx.moveTo(cellSize * x, cellSize * y);
+      ctx.lineTo(cellSize * (x - 0.45), cellSize * (y + 0.35));
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cellSize * (x + 0.15), cellSize * y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Simulate fire spreading around a central ignition point
     for (let i = 0; i < gridSize; i++) {
       for (let j = 0; j < gridSize; j++) {
-        const dist = Math.hypot(i - gridSize / 2, j - gridSize / 2);
+        const dist = Math.hypot(i - 11.2, j - 8.2);
         let color;
 
-        if (dist < 3) color = fireColor;
-        else if (dist < 6) color = burnedColor;
+        const inLake = Math.hypot(i - 4.2, j - 15.0) < 3.6;
+        const inRocks = (i > 13 && j > 12 && Math.hypot(i - 15, j - 15) < 3.2) || (i < 5 && j < 4 && Math.hypot(i - 2, j - 2) < 1.7);
+        const inWindScorchedBand = j < 5 && i > 10;
+
+        if (inLake) color = lakeColor;
+        else if (inRocks) color = rockColor;
+        else if (dist < 2.4) color = fireColor;
+        else if (dist < 4.8 || inWindScorchedBand) color = burnedColor;
+        else if (i > 12 && j < 8) color = 'rgba(255,107,157,0.20)';
         else color = treeColor;
 
         ctx.fillStyle = color;
         ctx.fillRect(i * cellSize, j * cellSize, cellSize - 1, cellSize - 1);
       }
     }
+
+    // Rocks and shoreline outlines for readability
+    ctx.strokeStyle = 'rgba(232,232,240,0.14)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(cellSize * 4.3, cellSize * 15.3, cellSize * 3.4, cellSize * 2.2, -0.2, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(cellSize * 15, cellSize * 15, cellSize * 3.2, cellSize * 2.8, 0, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
   function drawGasPreview() {

@@ -373,20 +373,20 @@
 
   .game-layout {
     display: grid;
-    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(220px, 280px);
-    gap: 1.25rem;
+    grid-template-columns: minmax(0, 1fr) minmax(160px, 180px);
+    gap: 1rem;
     align-items: start;
-    margin: 1.5rem 0;
+    margin: 0.75rem 0 1rem;
   }
 
   .pattern-side {
     position: sticky;
-    top: 76px;
+    top: 70px;
     align-self: start;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 1rem;
+    padding: 0.85rem;
   }
 
   .side-label {
@@ -406,6 +406,57 @@
 
   .game-center {
     margin: 0;
+    min-width: 0;
+  }
+
+  .pattern-dock {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .pattern-dock-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .pattern-dock-grid .pattern-card {
+    padding: 0.75rem;
+  }
+
+  .pattern-dock-grid .pattern-name {
+    font-size: 0.76rem;
+  }
+
+  .pattern-dock-grid .pattern-desc {
+    font-size: 0.66rem;
+  }
+
+  .pattern-side .pattern-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin: 0;
+  }
+
+  .pattern-side .pattern-card {
+    min-width: 0;
+  }
+
+  .side-group + .side-group {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .side-group h4 {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin: 0 0 0.75rem;
   }
   
   section.hero {
@@ -554,6 +605,77 @@
     display: block;
   }
 
+  .fire-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+    gap: 1rem;
+    align-items: start;
+    margin: 1.5rem 0;
+  }
+
+  .fire-copy {
+    margin: 0;
+  }
+
+  .fire-copy-head {
+    position: relative;
+    padding-right: 3rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .fire-copy-head h3 {
+    margin: 0;
+  }
+
+  .fire-audio-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    border: 1px solid var(--border2);
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+  }
+
+  .fire-audio-btn:hover {
+    border-color: var(--accent2);
+    color: var(--accent2);
+    background: rgba(255,107,157,0.08);
+    transform: translateY(-1px);
+  }
+
+  .fire-audio-btn.is-playing {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(79,255,176,0.08);
+  }
+
+  .fire-copy .lead {
+    margin-bottom: 1rem;
+  }
+
+  .fire-list {
+    margin: 1rem 0 1rem 1.2rem;
+    color: var(--text-light);
+  }
+
+  .fire-list li {
+    margin-bottom: 0.7rem;
+  }
+
+  .fire-preview {
+    margin: 0;
+    min-height: 100%;
+  }
+
   /* ── ANIMATION REVEAL ── */
   .reveal {
     opacity: 0;
@@ -647,7 +769,19 @@
       grid-template-columns: 1fr;
     }
 
+    .fire-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .fire-copy-head {
+      padding-right: 2.4rem;
+    }
+
     .pattern-side {
       position: static;
+    }
+
+    .pattern-dock-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
