@@ -138,38 +138,45 @@
     <p>🔬 <strong>Complexité émergente :</strong> Ces quatre règles ultra-simples donnent naissance à des formes remarquables : des structures stables, des oscillateurs, des créatures qui se déplacent à travers la grille.</p>
   </div>
 
-  <div class="card reveal">
-    <h3>Explorer le Jeu de la Vie</h3>
-    <p>Interagissez directement avec la grille ci-dessous : dessinez, lancez la simulation, chargez des motifs et observez l'évolution.</p>
+  <div class="game-layout reveal">
+    <aside class="pattern-side left">
+      <div class="side-label">Motifs simples</div>
+      <p class="side-note">Cliquez ou glissez un motif vers la grille centrale.</p>
+      <div class="pattern-grid" id="patternGrid"></div>
+    </aside>
 
-    <div class="game-container" style="margin-top:1rem">
-      <div class="game-controls">
-        <button class="btn primary" id="playBtn">▶ Lancer</button>
-        <button class="btn" id="stepMain">Étape</button>
-        <button class="btn danger" id="clearMain">✕ Effacer</button>
-        <button class="btn" id="randomMain">⊕ Aléatoire</button>
-      </div>
+    <div class="card game-center">
+      <h3>Explorer le Jeu de la Vie</h3>
+      <p>Interagissez directement avec la grille : dessinez, lancez la simulation, chargez des motifs et observez l'évolution.</p>
+      <p id="patternStatus" class="lead" style="font-size:0.92rem;margin-top:0.5rem">Cliquez ou glissez un motif vers la grille pour l’ajouter.</p>
 
-      <div class="slider-row">
-        <label>Vitesse</label>
-        <input type="range" min="1" max="30" value="8" id="speedMain">
-        <span id="speedMainVal">8 gen/s</span>
-      </div>
+      <div class="game-container" style="margin-top:1rem">
+        <div class="game-controls">
+          <button class="btn primary" id="playBtn">▶ Lancer</button>
+          <button class="btn" id="stepMain">Étape</button>
+          <button class="btn danger" id="clearMain">✕ Effacer</button>
+          <button class="btn" id="randomMain">⊕ Aléatoire</button>
+        </div>
 
-      <canvas id="mainCanvas" style="margin-top:1rem;max-width:100%"></canvas>
-      <div class="stats-bar">
-        Génération <span id="mainGen">0</span> &nbsp;·&nbsp;
-        Cellules vivantes <span id="mainPop">0</span>
+        <div class="slider-row">
+          <label>Vitesse</label>
+          <input type="range" min="1" max="30" value="8" id="speedMain">
+          <span id="speedMainVal">8 gen/s</span>
+        </div>
+
+        <canvas id="mainCanvas" style="margin-top:1rem;max-width:100%"></canvas>
+        <div class="stats-bar">
+          Génération <span id="mainGen">0</span> &nbsp;·&nbsp;
+          Cellules vivantes <span id="mainPop">0</span>
+        </div>
       </div>
     </div>
 
-    <div class="divider" style="margin-top:1.5rem"></div>
-
-    <h4 style="margin-top:1rem">Bibliothèque de motifs</h4>
-    <div class="pattern-grid reveal" id="patternGrid"></div>
-
-    <h4 style="margin-top:1rem">Exemples avancés</h4>
-    <div class="pattern-grid reveal" id="complexGrid"></div>
+    <aside class="pattern-side right">
+      <div class="side-label">Motifs avancés</div>
+      <p class="side-note">Glissez un motif sur la grille ou cliquez pour l’insérer au centre.</p>
+      <div class="pattern-grid" id="complexGrid"></div>
+    </aside>
   </div>
 </section>
 

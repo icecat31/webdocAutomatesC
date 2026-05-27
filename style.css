@@ -370,6 +370,43 @@
   .slider-row span { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); min-width: 3rem; }
 
   /* ── INDEX.HTML SPECIFIC STYLES ── */
+
+  .game-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(220px, 280px);
+    gap: 1.25rem;
+    align-items: start;
+    margin: 1.5rem 0;
+  }
+
+  .pattern-side {
+    position: sticky;
+    top: 76px;
+    align-self: start;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1rem;
+  }
+
+  .side-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.35rem;
+  }
+
+  .side-note {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .game-center {
+    margin: 0;
+  }
   
   section.hero {
     background: linear-gradient(135deg, rgba(124,111,255,0.05), rgba(255,107,157,0.05));
@@ -566,11 +603,15 @@
   .rule-card:hover {
     border-color: var(--accent);
     background: rgba(124,111,255,0.08);
+    width: 100%;
+    font: inherit;
     transform: translateY(-2px);
   }
 
   /* ── BTN LINK STYLE ── */
   .btn {
+  .pattern-card[draggable="true"] { cursor: grab; }
+  .pattern-card.dragging { opacity: 0.5; transform: scale(0.98); }
     text-decoration: none;
     display: inline-block;
   }
@@ -600,5 +641,13 @@
       width: 45px;
       height: 45px;
       font-size: 1rem;
+    }
+
+    .game-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .pattern-side {
+      position: static;
     }
   }

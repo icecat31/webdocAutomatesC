@@ -19,6 +19,7 @@ function createInstance(id, canvasId, cols, rows) {
   };
 
   setupEvents(id);
+  setupDropEvents(id);
   render(id);
   return instances[id];
 }
@@ -79,6 +80,40 @@ function setupEvents(id) {
     }
   }, {passive: false});
   window.addEventListener('touchend', () => { painting = false; });
+}
+
+function setupDropEvents(id) {
+  const inst = instances[id];
+  const c = inst.canvas;
+
+  c.addEventListener('dragover', event => {
+    event.preventDefault();
+  });
+
+  c.addEventListener('drop', event => {
+    event.preventDefault();
+    const payload = event.dataTransfer?.getData('application/json');
+    if (!payload) return;
+
+    try {
+      const data = JSON.parse(payload);
+      const [col, row] = getCellFromClientPoint(inst, event.clientX, event.clientY);
+      insertPattern(id, data.pattern, row, col);
+      const status = document.getElementById('patternStatus');
+      if (status) status.textContent = `Motif ajouté sur la grille.`;
+    } catch {
+      return;
+    }
+  });
+}
+
+function getCellFromClientPoint(inst, clientX, clientY) {
+  const rect = inst.canvas.getBoundingClientRect();
+  const scaleX = inst.cols / rect.width;
+  const scaleY = inst.rows / rect.height;
+  const col = Math.floor((clientX - rect.left) * scaleX);
+  const row = Math.floor((clientY - rect.top) * scaleY);
+  return [col, row];
 }
 
 function countNeighbors(grid, row, col, rows, cols) {
@@ -146,6 +181,7 @@ function render(id) {
 
 function updateStats(id) {
   const inst = instances[id];
+  if (!inst) return;
   let pop = 0;
   for (let r = 0; r < inst.rows; r++)
     for (let c = 0; c < inst.cols; c++) pop += inst.grid[r][c];
@@ -225,6 +261,10 @@ function placePattern(id, pattern, centerRow, centerCol) {
   }
   render(id);
   updateStats(id);
+}
+
+function insertPattern(id, pattern, centerRow, centerCol) {
+  placePattern(id, pattern, centerRow, centerCol);
 }
 
 // PATTERNS (same data as before)
@@ -325,29 +365,43 @@ function buildPatternGrid(containerId, patterns, instanceId) {
   const el = document.getElementById(containerId);
   if (!el) return;
   el.innerHTML = patterns.map((p, i) => `
-    <div class="pattern-card" id="pc_${containerId}_${i}" onclick="loadPattern('${instanceId}', ${JSON.stringify(JSON.stringify(p.pattern))}, '${containerId}', ${i})">
+    <button type="button" class="pattern-card" id="pc_${containerId}_${i}" draggable="true">
       ${renderPreview(p.preview)}
       <div class="pattern-name">${p.name}</div>
       <div class="pattern-desc" style="color:${typeColor[p.type]};font-weight:500;font-size:0.7rem">${typeLabel[p.type]}</div>
       <div class="pattern-desc">${p.desc}</div>
-    </div>
+    </button>
   `).join('');
+
+  patterns.forEach((pattern, index) => {
+    const card = document.getElementById(`pc_${containerId}_${index}`);
+    if (!card) return;
+    card.addEventListener('click', () => loadPattern(instanceId, pattern.pattern, containerId, index));
+    card.addEventListener('dragstart', event => {
+      card.classList.add('dragging');
+      event.dataTransfer?.setData('application/json', JSON.stringify({ pattern: pattern.pattern, name: pattern.name }));
+      event.dataTransfer?.setData('text/plain', pattern.name);
+      if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+    });
+  });
 }
 
-function loadPattern(instanceId, patternJson, gridId, idx) {
-  const pattern = JSON.parse(patternJson);
+function loadPattern(instanceId, pattern, gridId, idx) {
   const inst = instances[instanceId];
   if (!inst) return;
 
-  // Clear and stop
-  if (inst.running) togglePlay(instanceId);
-  for (let r = 0; r < inst.rows; r++) inst.grid[r].fill(0);
-  inst.gen = 0;
-
-  // Center it
+  // Insert without clearing the existing grid
   const cr = Math.floor(inst.rows / 2);
   const cc = Math.floor(inst.cols / 2);
-  placePattern(instanceId, pattern, cr, cc);
+  insertPattern(instanceId, pattern, cr, cc);
+
+  const status = document.getElementById('patternStatus');
+  if (status) {
+    status.textContent = `Motif ajouté : ${gridId === 'patternGrid' ? 'forme classique' : 'forme avancée'}`;
+  }
 
   // Visual feedback
   document.querySelectorAll(`#${gridId} .pattern-card`).forEach(el => el.classList.remove('selected'));
@@ -461,11 +515,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const CPX_COLS = 55, CPX_ROWS = 30;
 
   createInstance('main', 'mainCanvas', MAIN_COLS, MAIN_ROWS);
-  createInstance('demo', 'demoCanvas', DEMO_COLS, DEMO_ROWS);
-  createInstance('complex', 'complexCanvas', CPX_COLS, CPX_ROWS);
+  if (document.getElementById('demoCanvas')) createInstance('demo', 'demoCanvas', DEMO_COLS, DEMO_ROWS);
+  if (document.getElementById('complexCanvas')) createInstance('complex', 'complexCanvas', CPX_COLS, CPX_ROWS);
 
-  buildPatternGrid('patternGrid', PATTERNS_BASIC, 'demo');
-  buildPatternGrid('complexGrid', PATTERNS_COMPLEX, 'complex');
+  buildPatternGrid('patternGrid', PATTERNS_BASIC, 'main');
+  buildPatternGrid('complexGrid', PATTERNS_COMPLEX, 'main');
 
   updateStats('main');
   updateStats('demo');
