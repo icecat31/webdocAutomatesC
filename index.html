@@ -420,129 +420,23 @@
     const el = document.getElementById('firePreview');
     if (!el) return;
 
-    // If the preview element is an <img>, just set its source and exit.
+    // If the preview element is an <img>, just ensure it points to the existing image.
     if (el.tagName === 'IMG') {
-      el.src = 'assets/IMG/fire-preview.png';
+      el.src = 'assets/IMG/forestFire.png';
       return;
     }
 
+    // Canvas fallback: draw the static image onto the canvas.
     const canvas = el;
-
-    // Use CSS variables for consistent theming
-    const cs = getComputedStyle(document.documentElement);
-    const bg = cs.getPropertyValue('--bg3').trim() || '#1a1a24';
-    const fireColor = cs.getPropertyValue('--muted').trim() || '#8b8fa3';
-    const burnedColor = cs.getPropertyValue('--accent2').trim() || '#ff6b9d';
-    const treeColor = cs.getPropertyValue('--green').trim() || '#5a8b6f';
-    const rockColor = cs.getPropertyValue('--border2').trim() || '#44454f';
-    const lakeColor = cs.getPropertyValue('--accent').trim() || '#7c6fff';
-    const windColor = cs.getPropertyValue('--amber').trim() || '#ffc94a';
-
-    // match canvas pixel size to rendered size
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
-
     const ctx = canvas.getContext('2d');
-
-    // Try to load an external preview image to replace the procedural canvas.
-    // Place your image at `assets/IMG/fire-preview.png` to use it.
-    const previewImg = new Image();
-    previewImg.src = 'assets/IMG/fire-preview.png';
-    previewImg.onload = () => {
+    const img = new Image();
+    img.src = 'assets/IMG/forestFire.png';
+    img.onload = () => {
       canvas.width = canvas.clientWidth;
       canvas.height = canvas.clientHeight;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(previewImg, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     };
-    const gridSize = 20;
-    const cellSize = canvas.clientWidth / gridSize;
-
-    ctx.fillStyle = '#202433';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Soft atmospheric background
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, 'rgba(124,111,255,0.18)');
-    gradient.addColorStop(0.55, 'rgba(255,107,157,0.08)');
-    gradient.addColorStop(1, 'rgba(255,255,255,0.06)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Lake in the lower-left corner
-    ctx.fillStyle = 'rgba(124,111,255,0.30)';
-    ctx.beginPath();
-    ctx.ellipse(cellSize * 4.3, cellSize * 15.3, cellSize * 3.4, cellSize * 2.2, -0.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = 'rgba(124,111,255,0.55)';
-    ctx.beginPath();
-    ctx.ellipse(cellSize * 3.4, cellSize * 14.5, cellSize * 1.8, cellSize * 0.55, 0.15, 0, Math.PI * 2);
-    ctx.fill();
-
-    // (Wind arrows removed for a cleaner preview)
-
-    // Two-pass approach: mark central ashes, then ignite trees adjacent to those ashes
-    const grid = Array.from({ length: gridSize }, () => Array(gridSize).fill('tree'));
-
-    for (let i = 0; i < gridSize; i++) {
-      for (let j = 0; j < gridSize; j++) {
-        const dist = Math.hypot(i - 9.5, j - 10.0);
-
-        const inLake = Math.hypot(i - 4.5, j - 15.5) < 3.2;
-        const inRocks = (i > 13 && j > 11 && Math.hypot(i - 15, j - 13) < 2.8) || (i < 6 && j < 5 && Math.hypot(i - 2, j - 3) < 1.5);
-        const inWindScorchedBand = j < 5 && i > 10;
-
-        if (inLake) grid[i][j] = 'lake';
-        else if (inRocks) grid[i][j] = 'rock';
-        else if (dist < 2.4) grid[i][j] = 'fire'; // ignition core
-        else if (dist < 4.8 && Math.hypot(i - 9.5, j - 10.0) < 4.8) grid[i][j] = 'ash'; // central ash ring
-        else if (inWindScorchedBand) grid[i][j] = 'ash';
-        else grid[i][j] = 'tree';
-      }
-    }
-
-    // Ignite only trees adjacent to ash (center ashes only)
-    for (let i = 0; i < gridSize; i++) {
-      for (let j = 0; j < gridSize; j++) {
-        if (grid[i][j] !== 'tree') continue;
-        let nearAsh = false;
-        for (let dx = -1; dx <= 1 && !nearAsh; dx++) {
-          for (let dy = -1; dy <= 1 && !nearAsh; dy++) {
-            if (dx === 0 && dy === 0) continue;
-            const nx = i + dx, ny = j + dy;
-            if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize) {
-              if (grid[nx][ny] === 'ash') nearAsh = true;
-            }
-          }
-        }
-        if (nearAsh) grid[i][j] = 'fire';
-      }
-    }
-
-    // Draw grid
-    for (let i = 0; i < gridSize; i++) {
-      for (let j = 0; j < gridSize; j++) {
-        let color;
-        switch (grid[i][j]) {
-          case 'lake': color = lakeColor; break;
-          case 'rock': color = rockColor; break;
-          case 'fire': color = fireColor; break;
-          case 'ash': color = burnedColor; break;
-          default: color = treeColor; break;
-        }
-        ctx.fillStyle = color;
-        ctx.fillRect(i * cellSize, j * cellSize, cellSize - 1, cellSize - 1);
-      }
-    }
-
-    // Rocks and shoreline outlines for readability
-    ctx.strokeStyle = 'rgba(232,232,240,0.14)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.ellipse(cellSize * 4.5, cellSize * 15.5, cellSize * 3.2, cellSize * 2.0, -0.2, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.ellipse(cellSize * 15, cellSize * 13, cellSize * 2.8, cellSize * 2.2, 0, 0, Math.PI * 2);
-    ctx.stroke();
   }
 
   function drawGasPreview() {
