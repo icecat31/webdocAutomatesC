@@ -224,58 +224,35 @@
 <section id="gaz">
   <div class="act-label">Chapitre 4 — La Diffusion de Gaz</div>
   <h2>Comment un gaz se répand dans l'air</h2>
-  <p class="lead">La diffusion de gaz est un phénomène macroscopique qui émerge du mouvement aléatoire des molécules. Les automates cellulaires peuvent le modéliser efficacement.</p>
-
-  <div class="card reveal">
-    <h3>La règle de la Diffusion</h3>
-    <p>À chaque génération, les molécules de gaz se déplacent aléatoirement vers des cellules adjacentes, créant une propagation graduelle :</p>
-
-    <div class="rule-grid">
-      <div class="rule-card">
-        <h3>🔷 Concentration</h3>
-        <p>Chaque cellule a un niveau de concentration de gaz (0 à 100%).</p>
+  <div class="fire-layout reveal">
+    <div class="card fire-copy">
+      <div class="fire-copy-head">
+        <h3>Pourquoi cette simulation est utile</h3>
+        <button type="button" class="fire-audio-btn" id="gasAudioBtn" aria-label="Lire le texte de la simulation de gaz">🔊</button>
       </div>
-      <div class="rule-card">
-        <h3>→ Mouvements</h3>
-        <p>Une fraction du gaz migre vers les quatre cellules voisines.</p>
-      </div>
-      <div class="rule-card">
-        <h3>⚖️ Équilibre</h3>
-        <p>Au fil du temps, la concentration s'uniformise — le gaz se diffuse partout.</p>
+      <div id="gasText">
+        <p class="lead">La simulation de la propagation d’un gaz est la plus complexe des simulations dont nous allons parler, principalement parce qu’elle dépend du gaz qui est simulé, mais aussi parce qu’un gaz se répartit de manière uniforme dans l’air.</p>
+        <p>Les cellules peuvent être divisées en trois états :</p>
+
+        <ul class="fire-list">
+          <li><strong>Cellules non propagatrices :</strong> les zones où le gaz ne peut pas se répandre, comme les murs.</li>
+          <li><strong>Cellules sans gaz :</strong> les zones dans lesquelles le gaz ne s’est pas encore répandu.</li>
+          <li><strong>Cellules contaminées :</strong> les zones dans lesquelles le gaz s’est répandu, avec une couleur qui varie selon le niveau de concentration.</li>
+        </ul>
+
+        <p>Enfin, pour le changement d’état, une cellule devient contaminée par le gaz quand il y a une cellule dans laquelle le gaz s’est répandu à côté, cependant la cellule depuis laquelle le gaz se répand perd une partie de son gaz, qui se transfert dans la cellule nouvellement contaminée.</p>
       </div>
     </div>
-  </div>
 
-  <div class="simulation-preview reveal">
-    <h4>Aperçu : Diffusion de Gaz</h4>
-    <p>Le gaz se propage lentement depuis un point d'émission</p>
-    <canvas id="gasPreview" style="width: 100%; max-width: 300px; height: 200px;"></canvas>
+    <div class="simulation-preview fire-preview reveal">
+      <h4>A quoi ça ressemble</h4>
+      <p>Le gaz se répartit progressivement dans l’espace, en contournant les obstacles.</p>
+      <img id="gasPreview" src="assets/IMG/propagationGaz.png" alt="Aperçu propagation de gaz" style="width: 100%; max-width: 300px; height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
+    </div>
   </div>
 
   <div class="callout green reveal">
     <p>🔬 <strong>Connexion avec la physique :</strong> Ce modèle simple est une approximation discrète de l'équation de diffusion de Fourier. Il démontre comment des lois physiques complexes émergent de la mécanique aléatoire.</p>
-  </div>
-</section>
-
-<!-- ═════════════════════════════════════════ VIDEO INTERVIEW GAZ ═════════════════════════════════════════ -->
-<section id="interview-gaz">
-  <div class="act-label">Interview</div>
-  <h2>Expert en physique et modélisation</h2>
-  <p class="lead" style="margin-bottom: 2rem;">Comment comprendre les phénomènes macroscopiques en partant du microscopique.</p>
-
-  <div class="video-container reveal">
-    <div class="play-icon">▶</div>
-    <h4>Comment passons-nous du chaos microscopique à l'ordre macroscopique ?</h4>
-    <p>Cette vidéo explore le lien entre les molécules individuelles et les lois physiques observées.</p>
-  </div>
-
-  <div class="card reveal">
-    <h3>Points clés de l'interview</h3>
-    <ul style="margin-left: 1.5rem; color: var(--text-light);">
-      <li>La diffusion émerge du mouvement brownien aléatoire.</li>
-      <li>Les automates cellulaires offrent une alternative efficace aux équations différentielles.</li>
-      <li>Ce principe s'applique à bien d'autres phénomènes : température, concentration, pollution.</li>
-    </ul>
   </div>
 </section>
 
@@ -305,19 +282,6 @@
         <p>Utiliser les automates comme base pour des systèmes multi-agents autonomes.</p>
       </div>
     </div>
-  </div>
-
-  <div class="card reveal" style="background: linear-gradient(135deg, rgba(155,125,92,0.08), rgba(212,165,116,0.08)); border-color: var(--accent);">
-    <h3>Votre tour d'explorer</h3>
-    <p>Nous avons survolé les principes. Maintenant, testez par vous-même :</p>
-    <div style="margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem;">
-      <a href="jeu-de-la-vie.html" class="btn primary">→ Explorer le Jeu de la Vie</a>
-      <button class="btn secondary" onclick="scrollToSection('#automates')">← Revenir aux Fondamentaux</button>
-    </div>
-  </div>
-
-  <div class="callout reveal">
-    <p>📚 <strong>Pour aller plus loin :</strong> Explorez les ressources en ligne, découvrez de nouveaux modèles d'automates, contribuez à des projets open-source de simulation, ou créez votre propre automate cellulaire.</p>
   </div>
 
   <div class="card reveal">
@@ -439,41 +403,9 @@
     };
   }
 
-  function drawGasPreview() {
-    const canvas = document.getElementById('gasPreview');
-    if (!canvas) return;
-
-    const cs = getComputedStyle(document.documentElement);
-    const bg = cs.getPropertyValue('--bg3').trim() || '#1a1a24';
-    const gasColor = cs.getPropertyValue('--accent').trim() || '#7c6fff';
-
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
-
-    const ctx = canvas.getContext('2d');
-    const gridSize = 20;
-    const cellSize = canvas.clientWidth / gridSize;
-
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Simulate gas diffusion
-    for (let i = 0; i < gridSize; i++) {
-      for (let j = 0; j < gridSize; j++) {
-        const dist = Math.hypot(i - gridSize / 2, j - gridSize / 2);
-        const intensity = Math.max(0, 1 - dist / 10);
-
-        // use RGBA from computed color if needed
-        ctx.fillStyle = `rgba(124,111,255, ${intensity * 0.6})`;
-        ctx.fillRect(i * cellSize, j * cellSize, cellSize - 1, cellSize - 1);
-      }
-    }
-  }
-
   // Draw previews on load
   setTimeout(() => {
     drawFirePreview();
-    drawGasPreview();
   }, 100);
 </script>
 

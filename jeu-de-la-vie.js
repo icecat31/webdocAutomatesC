@@ -512,9 +512,9 @@ function initScroll() {
   reveals.forEach(el => obs.observe(el));
 }
 
-function setupFireAudio() {
-  const button = document.getElementById('fireAudioBtn');
-  const textBlock = document.getElementById('fireText');
+function setupTextToSpeech(buttonId, textId) {
+  const button = document.getElementById(buttonId);
+  const textBlock = document.getElementById(textId);
   if (!button || !textBlock || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
     return;
   }
@@ -558,7 +558,8 @@ function setupFireAudio() {
 document.addEventListener('DOMContentLoaded', () => {
   initHeroBg();
   initScroll();
-  setupFireAudio();
+  setupTextToSpeech('fireAudioBtn', 'fireText');
+  setupTextToSpeech('gasAudioBtn', 'gasText');
 
   // Compute canvas sizes based on container
   const MAIN_COLS = 78, MAIN_ROWS = 80;
