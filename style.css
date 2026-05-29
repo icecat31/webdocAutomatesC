@@ -54,6 +54,13 @@
     margin-right: auto;
     font-weight: 400;
   }
+  .header-badge {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    flex: 0 0 auto;
+    margin-right: 0.85rem;
+  }
   header nav {
     position: static;
     gap: 0;
@@ -776,6 +783,11 @@
     .hero-content { padding: 0 1.5rem; }
     section { padding: 5rem 1.25rem 3rem; }
     header, nav { padding: 0 1rem; }
+    .header-badge {
+      width: 32px;
+      height: 32px;
+      margin-right: 0.6rem;
+    }
     header nav a, nav a { display: none; }
     header nav a:first-child, nav a:first-child { display: block; }
     
