@@ -212,7 +212,7 @@
     <div class="simulation-preview fire-preview reveal">
       <h4>A quoi ça ressemble</h4>
       <p>Une grille discrète montre l’évolution du feu et sa propagation vers les arbres voisins.</p>
-      <img id="firePreview" src="assets/IMG/forestFire.png" alt="Aperçu incendie" style="width: 100%; max-width: 300px; height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
+      <img id="firePreview" class="preview-image" src="assets/IMG/forestFire.png" alt="Aperçu incendie" style="width: 100%; max-width: 300px; height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
     </div>
   </div>
 
@@ -248,7 +248,7 @@
     <div class="simulation-preview fire-preview reveal">
       <h4>A quoi ça ressemble</h4>
       <p>Le gaz se répartit progressivement dans l’espace, en contournant les obstacles.</p>
-      <img id="gasPreview" src="assets/IMG/propagationGaz.png" alt="Aperçu propagation de gaz" style="width: 100%; max-width: 300px; height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
+      <img id="gasPreview" class="preview-image" src="assets/IMG/propagationGaz.png" alt="Aperçu propagation de gaz" style="width: 100%; max-width: 300px; height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
     </div>
   </div>
 
@@ -296,11 +296,19 @@
 
   <footer class="site-footer reveal">
     <strong>Groupe E</strong>
-    <span>Auteurs : PATOUILLARD Arno, DULUC Soren, SAURY Guillaume</span>
+    <span>Auteurs : PATOUILLARD Arno, DULUC Soren, SAURY Guillaume, avec l'aide du scientifique M. Maerivoet</span>
   </footer>
 </section>
 
 </main>
+
+<div class="image-lightbox" id="imageLightbox" aria-hidden="true">
+  <div class="image-lightbox-backdrop" id="imageLightboxBackdrop"></div>
+  <figure class="image-lightbox-panel" role="dialog" aria-modal="true" aria-label="Aperçu de l'image">
+    <button type="button" class="image-lightbox-close" id="imageLightboxClose" aria-label="Fermer l'aperçu">×</button>
+    <img id="imageLightboxImg" alt="Aperçu agrandi">
+  </figure>
+</div>
 
 <script src="jeu-de-la-vie.js"></script>
 
@@ -384,6 +392,37 @@
       element.scrollIntoView({ behavior: 'smooth' });
     }
   }
+
+  // ─── IMAGE LIGHTBOX ─── 
+  const imageLightbox = document.getElementById('imageLightbox');
+  const imageLightboxImg = document.getElementById('imageLightboxImg');
+  const imageLightboxClose = document.getElementById('imageLightboxClose');
+  const imageLightboxBackdrop = document.getElementById('imageLightboxBackdrop');
+
+  function openImageLightbox(sourceImg) {
+    if (!imageLightbox || !imageLightboxImg || !sourceImg) return;
+    imageLightboxImg.src = sourceImg.src;
+    imageLightboxImg.alt = sourceImg.alt || 'Aperçu agrandi';
+    imageLightbox.classList.add('is-open');
+    imageLightbox.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeImageLightbox() {
+    if (!imageLightbox || !imageLightboxImg) return;
+    imageLightbox.classList.remove('is-open');
+    imageLightbox.setAttribute('aria-hidden', 'true');
+    imageLightboxImg.src = '';
+  }
+
+  document.querySelectorAll('.preview-image').forEach(img => {
+    img.addEventListener('click', () => openImageLightbox(img));
+  });
+
+  imageLightboxClose?.addEventListener('click', closeImageLightbox);
+  imageLightboxBackdrop?.addEventListener('click', closeImageLightbox);
+  window.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeImageLightbox();
+  });
 
   // ─── SIMPLE SIMULATIONS (Preview Canvases) ─── 
   function drawFirePreview() {
